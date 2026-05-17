@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "632058709841",
+    "project_id": "motodigo-30874",
+    "storage_bucket": "motodigo-30874.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632058709841:android:dc0d875e5140002fa97570",
+        "android_client_info": {
+          "package_name": "com.motodigo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLdp8Jdiv-Ci9PE8uCGmbbuL2x4LcqbXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

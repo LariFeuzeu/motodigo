@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MotoDigo | L'Afrique avance{% endblock %}</title>
+
+    <!-- Polices Pro -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Poppins:wght@300;400;600&display=swap"
+          rel="stylesheet">
+
+    <!-- Tailwind & HTMX -->
+    <script src="{{ url_for('static', path='/js/tailwindcss.js') }}"></script>
+
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"
+            integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxFiKIEdS92+ZY1ZZ63TMsA"
+            crossorigin="anonymous"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primaryDark': '#09091A',
+                        'accentBlue': '#2D60FF',
+                        'lightBackground': '#F8FAFD',
+                        'successGreen': '#00C853',
+                        'errorRed': '#FF4B4B',
+                        'warningOrange': '#FF9100',
+                        'textGrey': '#8E8E93',
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'sans-serif'],
+                        'title': ['Montserrat', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'premium-grad': 'linear-gradient(135deg, #09091A 0%, #2D60FF 100%)',
+                    }
+                }
+            }
+        }
+
+
+    </script>
+
+    <style>
+        /* Animation Engine */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.9s cubic-bezier(0.17, 0.55, 0.55, 1);
+            will-change: transform, opacity;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+
+        html { scroll-behavior: smooth; }
+
+
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+        });
+
+
+    </script>
+</head>
+<body class="bg-lightBackground text-primaryDark font-sans">
+
+{% include "components/navbar.html" %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+{% include "components/footer.html" %}
+
+</body>
+</html>

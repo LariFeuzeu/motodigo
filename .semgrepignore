@@ -1,0 +1,3 @@
+# Ignorer les configurations Firebase du Frontend Flutter
+MotodigoFront/lib/firebase_options.dart
+MotodigoFront/android/app/google-services.json

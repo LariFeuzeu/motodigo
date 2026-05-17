@@ -1,0 +1,6 @@
+[allowlist]
+description = "Autoriser les configurations Firebase client pour Flutter"
+paths = [
+    '''MotodigoFront/android/app/google-services.json''',
+    '''MotodigoFront/lib/firebase_options.dart'''
+]

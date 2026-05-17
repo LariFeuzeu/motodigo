@@ -1,0 +1,46 @@
+# Framework
+fastapi==0.111.1
+uvicorn[standard]==0.23.2
+
+# Database
+psycopg2-binary==2.9.7
+SQLAlchemy==2.0.23
+alembic==1.11.1
+
+# Security
+python-jose==3.3.0         # JWT
+passlib[bcrypt]==1.7.5     # Hashage mots de passe
+
+# Validation & Utils
+pydantic==2.6.2
+python-dotenv==1.0.1
+
+# Testing
+pytest==7.4.0
+httpx==1.2.3
+
+
+
+| Package            | Rôle                                         |
+| ------------------ | -------------------------------------------- |
+| fastapi            | Framework principal pour créer l’API         |
+| uvicorn\[standard] | Serveur ASGI pour lancer l’API en local      |
+| psycopg2-binary    | Driver pour connecter PostgreSQL             |
+| SQLAlchemy         | ORM pour interagir avec la base en Python    |
+| alembic            | Gestion des migrations de la base de données |
+| python-dotenv      | Pour charger les variables depuis `.env`     |
+| passlib\[bcrypt]   | Hashage sécurisé des mots de passe           |
+| python-jose        | Pour générer et vérifier les JWT             |
+| pydantic           | Validation et sérialisation des données      |
+
+
+ source venv/Scripts/activate 
+ $ pip install "pydantic<2" python-jose passlib[bcrypt] fastapi uvicorn[standard] psycopg2-binary SQLAlchemy alembic python-dotenv
+ Compatible avec python
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+netsh advfirewall firewall add rule name="FastAPI 8000" dir=in action=allow protocol=TCP localport=8000
+
+git: source venv/Scripts/activate
+ windows: .\venv\Scripts\Activate.ps1
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload

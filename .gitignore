@@ -1,0 +1,24 @@
+# Python (Backend)
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/venv/
+**/.env
+
+**/generate_secret_key.py
+# Clés de comptes de service Firebase / GCP
+**/serviceAccountKey.json
+*.json.txt
+
+# Flutter (Frontend)
+**/.dart_tool/
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/build/
+
+# Système & Éditeurs
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
