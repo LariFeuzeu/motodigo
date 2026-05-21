@@ -183,9 +183,9 @@ async def search_trip(
     #  Préparation des données pour le Schéma TripRead (Clean Architecture)
     for trip in trips:
         trip.driver_name = trip.driver.full_name if trip.driver else "Chauffeur"
-    if trip.vehicle:
-        trip.vehicle_model = f"{trip.vehicle.make or ''} {trip.vehicle.model_name or ''}".strip()
-    else:
-        trip.vehicle_model = "Véhicule"
+        if trip.vehicle:
+            trip.vehicle_model = f"{trip.vehicle.make or ''} {trip.vehicle.model_name or ''}".strip()
+        else:
+            trip.vehicle_model = "Véhicule"
 
     return trips

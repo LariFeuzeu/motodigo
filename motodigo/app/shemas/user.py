@@ -25,7 +25,7 @@ class UserBase(BaseModel):
     phone: str = Field(..., min_length=8, max_length=15)  # Validation de la longueur du téléphone
     role: UserRole  # Force l'utilisateur à choisir un rôle valide de l'Enum
     country_code: Optional[str] = Field(None, min_length=2, max_length=2)
-    photo_url: str
+    photo_url: Optional[str] = None
 
 
 # Modèle pour l'Inscription (Création)

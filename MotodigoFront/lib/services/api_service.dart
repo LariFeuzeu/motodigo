@@ -67,15 +67,21 @@ class ApiService {
 
                   _isRefreshing = false; // On déverrouille après succès
 
+                  final newHeaders = Map<String, dynamic>.from(e.requestOptions.headers);
+                  newHeaders['Authorization'] = 'Bearer $newAccess';
+                  newHeaders['ngrok-skip-browser-warning'] = 'true';
+
                   //  On relance la requête originale qui avait échoué
-                  e.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
+                  // e.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
 
                   // On crée un clone de la requête originale
                   final opts = Options(
                     method: e.requestOptions.method,
                     headers: e.requestOptions.headers,
+                    contentType: e.requestOptions.contentType,
                   );
-
+                  // On utilise refreshDio pour éviter que l'intercepteur '\onRequest principal
+                  // ne vienne interférer ou écraser le header Authorization qu'on vient de fixer.
                   final retryResponse = await _dio.request(
                     e.requestOptions.path,
                     options: opts,
@@ -83,6 +89,7 @@ class ApiService {
                     queryParameters: e.requestOptions.queryParameters,
                   );
 
+                  // On renvoie la réponse réussie au reste de l'application
                   return handler.resolve(retryResponse);
                 }
               } catch (err) {
