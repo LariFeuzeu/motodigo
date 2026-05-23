@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/trip_provider.dart';
 import '../../utils/app_colors.dart';
-import 'package:shimmer/shimmer.dart';
+import '../widgets/shimmer_widgets.dart'; // Contient ton ShimmerBlock
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -35,21 +35,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.primaryDark,
       ),
-      // 🛠️ LA LOGIQUE D'APPEL DU SHIMMER MODIFIÉE ICI
       body: tripProvider.isLoading && bookings.isEmpty
-          ? _buildBookingShimmer() // Cas 1 : Mémoire vide + chargement réseau -> On montre le Shimmer complet
+          ? _buildBookingShimmerList() // 🟢 Appel de ta nouvelle liste de ShimmerBlocks
           : bookings.isEmpty
-          ? _buildEmptyState() // Cas 2 : Réseau fini et vraiment aucune réservation
+          ? _buildEmptyState()
           : Stack(
         children: [
-          // Cas 3 : On affiche directement les données (instantané !)
           ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: bookings.length,
             itemBuilder: (context, index) => _buildBookingTicket(bookings[index]),
           ),
-          // Si ça charge en arrière-plan alors qu'on a déjà des données,
-          // on peut mettre une petite barre discrète en haut (optionnel mais ultra pro)
           if (tripProvider.isLoading)
             Positioned(
               top: 0,
@@ -68,76 +64,77 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  /// 🟢 TON SHIMMER PERSONNALISÉ POUR LES TICKETS DE RÉSERVATION
-  Widget _buildBookingShimmer() {
+  /// 🟢 NOUVELLE MÉTHODE OPTIMISÉE AVEC TES SHIMMERBLOCKS
+  Widget _buildBookingShimmerList() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: 3, // On simule 3 tickets fantômes
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 3, // Simule 3 tickets en attente
       itemBuilder: (context, index) => Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10)],
         ),
-        child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Faux ID + Faux Statut Badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(width: 60, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                  Container(width: 70, height: 18, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))),
-                ],
-              ),
-              const SizedBox(height: 18),
-              // Fausse Date de calendrier
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today_rounded, size: 13, color: Colors.white),
-                  const SizedBox(width: 6),
-                  Container(width: 120, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Fausses Stations (Départ -> Arrivée)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(width: 45, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                      const SizedBox(height: 6),
-                      Container(width: 70, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                    ],
-                  ),
-                  const Icon(Icons.arrow_forward, color: Colors.white, size: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(width: 45, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                      const SizedBox(height: 6),
-                      Container(width: 70, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                    ],
-                  ),
-                ],
-              ),
-              const Divider(height: 40, color: Colors.transparent),
-              // Faux Détails du bas
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(width: 40, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                  Container(width: 60, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                ],
-              )
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Faux ID + Faux Statut Badge
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                ShimmerBlock(width: 60, height: 12),
+                ShimmerBlock(width: 70, height: 18, borderRadius: BorderRadius.all(Radius.circular(20))),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // Fausse Date de calendrier
+            Row(
+              children: const [
+                Icon(Icons.calendar_today_rounded, size: 13, color: Colors.grey),
+                SizedBox(width: 6),
+                ShimmerBlock(width: 120, height: 12),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fausses Stations (Départ -> Arrivée)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    ShimmerBlock(width: 45, height: 16),
+                    SizedBox(height: 6),
+                    ShimmerBlock(width: 70, height: 12),
+                  ],
+                ),
+                const Icon(Icons.arrow_forward, color: Colors.grey, size: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    ShimmerBlock(width: 45, height: 16),
+                    SizedBox(height: 6),
+                    ShimmerBlock(width: 70, height: 12),
+                  ],
+                ),
+              ],
+            ),
+            const Divider(height: 40, color: Colors.transparent),
+
+            // Faux Détails du bas
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                ShimmerBlock(width: 40, height: 14),
+                ShimmerBlock(width: 60, height: 14),
+              ],
+            )
+          ],
         ),
       ),
     );
@@ -169,7 +166,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 children: [
                   Text("MTD-${booking['id']}",
                       style: const TextStyle(color: AppColors.textGrey, fontSize: 10, fontWeight: FontWeight.bold)),
-                  _statusBadge(isCancelled ? 'ANNULÉ' : (isPast ? 'TERMINÉ': booking['status'])),
+                  _statusBadge(isCancelled ? 'ANNULÉ' : (isPast ? 'TERMINÉ' : booking['status'])),
                 ],
               ),
               const SizedBox(height: 14),

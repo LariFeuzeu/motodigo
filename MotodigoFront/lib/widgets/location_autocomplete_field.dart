@@ -54,7 +54,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
     // On lance un nouveau compte à rebours de 500ms
-    _debounce = Timer(const Duration(milliseconds: 350), () {
+    _debounce = Timer(const Duration(milliseconds: 600), () {
       if (query.trim().length >= 2) { // Sécurité au moins 2 caractères
         context.read<LocationProvider>().searchLocations(query.trim(), countryCode);
       }

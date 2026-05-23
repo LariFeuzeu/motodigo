@@ -7,11 +7,11 @@ from app.endpoints import vehicule
 from app.endpoints import geocadage
 from app.endpoints import trips
 from app.endpoints import booking_endpoint
+from app.endpoints import review_endpoint
 from app.endpoints import messages
 import firebase_admin
 from firebase_admin import credentials
 from fastapi.staticfiles import StaticFiles
-
 
 from app.web.routes.public_routes import templates
 
@@ -36,6 +36,7 @@ app.include_router(geocadage.router, prefix=f"{settings.API_V1_STR}/locations", 
 app.include_router(trips.router, prefix=f"{settings.API_V1_STR}/trips", tags=["Trips"])
 app.include_router(booking_endpoint.router, prefix=f"{settings.API_V1_STR}/bookings", tags=["Bookings"])
 app.include_router(messages.router, prefix=f"{settings.API_V1_STR}/messages", tags=["Messages"])
+app.include_router(review_endpoint.router, prefix=f"{settings.API_V1_STR}/review", tags=["Reviews"])
 
 
 @app.get("/")

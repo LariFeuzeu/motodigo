@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:shimmer/shimmer.dart';
+import '../widgets/shimmer_widgets.dart'; // Contient ton ShimmerBlock
 import '../../providers/trip_provider.dart';
 import '../../utils/app_colors.dart';
 import 'ChatScreenState.dart';
@@ -39,20 +39,17 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
         elevation: 0,
         foregroundColor: AppColors.primaryDark,
       ),
-      // 🛠️ LOGIQUE D'APPEL DU SHIMMER OPTIMISÉE
       body: tripProvider.isLoading && trips.isEmpty
           ? _buildDriverTripsShimmer() // Cas 1 : Premier chargement réseau (mémoire vide)
           : trips.isEmpty
           ? _buildEmptyState() // Cas 2 : Aucune donnée trouvée
           : Stack(
         children: [
-          // Cas 3 : Rendu instantané des trajets en cache local
           ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: trips.length,
             itemBuilder: (context, index) => _buildTripCard(trips[index]),
           ),
-          // Ligne de chargement discrète si mise à jour silencieuse
           if (tripProvider.isLoading)
             const Positioned(
               top: 0, left: 0, right: 0,
@@ -69,10 +66,11 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
     );
   }
 
-  /// 🟢 SQUELETTE DE CHARGEMENT POUR LES TRAJETS DU CHAUFFEUR
+  /// 🟢 SQUELETTE DE CHARGEMENT POUR LES TRAJETS DU CHAUFFEUR OPTIMISÉ AVEC SHIMMERBLOCK
   Widget _buildDriverTripsShimmer() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: 3,
       itemBuilder: (context, index) => Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -80,62 +78,60 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 10)],
         ),
-        child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Fausse Date + Faux Badge Statut
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(width: 110, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                  Container(width: 60, height: 18, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6))),
-                ],
-              ),
-              const SizedBox(height: 20),
-              // Fausses Villes (Origine -> Destination)
-              Row(
-                children: [
-                  const Icon(Icons.radio_button_checked, size: 16, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Container(width: 90, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
-              Container(margin: const EdgeInsets.only(left: 7, top: 4, bottom: 4), height: 12, width: 1.5, color: Colors.grey[200]),
-              Row(
-                children: [
-                  const Icon(Icons.location_on_rounded, size: 16, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Container(width: 110, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
-              const Divider(height: 30, color: Colors.transparent),
-              // Faux Remplissage places
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(width: 140, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                  Container(width: 30, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Container(width: double.infinity, height: 8, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10))),
-              const SizedBox(height: 15),
-              const Divider(height: 1, color: Colors.transparent),
-              const SizedBox(height: 10),
-              // Faux Boutons d'actions
-              Row(
-                children: [
-                  Expanded(child: Container(height: 36, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)))),
-                  const SizedBox(width: 8),
-                  Expanded(child: Container(height: 36, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)))),
-                ],
-              )
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Fausse Date + Faux Badge Statut
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                ShimmerBlock(width: 110, height: 12),
+                ShimmerBlock(width: 60, height: 18, borderRadius: BorderRadius.all(Radius.circular(6))),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Fausses Villes (Origine -> Destination)
+            Row(
+              children: const [
+                Icon(Icons.radio_button_checked, size: 16, color: Colors.grey),
+                SizedBox(width: 12),
+                ShimmerBlock(width: 90, height: 14),
+              ],
+            ),
+            Container(margin: const EdgeInsets.only(left: 7, top: 4, bottom: 4), height: 12, width: 1.5, color: Colors.grey[200]),
+            Row(
+              children: const [
+                Icon(Icons.location_on_rounded, size: 16, color: Colors.grey),
+                SizedBox(width: 12),
+                ShimmerBlock(width: 110, height: 14),
+              ],
+            ),
+            const Divider(height: 30, color: Colors.transparent),
+
+            // Faux Remplissage places
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                ShimmerBlock(width: 140, height: 12),
+                ShimmerBlock(width: 30, height: 12),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const ShimmerBlock(width: double.infinity, height: 8, borderRadius: BorderRadius.all(Radius.circular(10))),
+            const SizedBox(height: 25),
+
+            // Faux Boutons d'actions
+            Row(
+              children: const [
+                Expanded(child: ShimmerBlock(height: 36, borderRadius: BorderRadius.all(Radius.circular(8)))),
+                SizedBox(width: 8),
+                Expanded(child: ShimmerBlock(height: 36, borderRadius: BorderRadius.all(Radius.circular(8)))),
+              ],
+            )
+          ],
         ),
       ),
     );
