@@ -43,8 +43,9 @@ class ApiService {
         onError: (DioException e, handler) async {
           // On ne tente le refresh que si c'est une erreur 401 (Unauthorized)
           if (e.response?.statusCode == 401 && !_isRefreshing) {
-             _isRefreshing = true; // On verrouille
-            final refreshToken = await _secureStorage.read(key: 'refresh_token');
+            _isRefreshing = true; // On verrouille
+            final refreshToken = await _secureStorage.read(
+                key: 'refresh_token');
 
             if (refreshToken != null) {
               try {
@@ -54,7 +55,9 @@ class ApiService {
 
                 final response = await refreshDio.post(
                   "/api/v1/auth/refresh",
-                  queryParameters: {'refresh_token': refreshToken}, // ou data selon ton endpoint
+                  queryParameters: {
+                    'refresh_token': refreshToken
+                  }, // ou data selon ton endpoint
                 );
 
                 if (response.statusCode == 200) {
@@ -62,12 +65,15 @@ class ApiService {
                   final newRefresh = response.data['refresh_token'];
 
                   //  Sauvegarde des nouveaux tokens (Rotation)
-                  await _secureStorage.write(key: 'access_token', value: newAccess);
-                  await _secureStorage.write(key: 'refresh_token', value: newRefresh);
+                  await _secureStorage.write(
+                      key: 'access_token', value: newAccess);
+                  await _secureStorage.write(
+                      key: 'refresh_token', value: newRefresh);
 
                   _isRefreshing = false; // On déverrouille après succès
 
-                  final newHeaders = Map<String, dynamic>.from(e.requestOptions.headers);
+                  final newHeaders = Map<String, dynamic>.from(
+                      e.requestOptions.headers);
                   newHeaders['Authorization'] = 'Bearer $newAccess';
                   newHeaders['ngrok-skip-browser-warning'] = 'true';
 
@@ -146,7 +152,8 @@ class ApiService {
         "profile_photo": await MultipartFile.fromFile(
           profilePhoto.path,
           filename: "profile_${userData['firebase_uid']}.jpg",
-          contentType: MediaType('image', 'jpeg'), // Nécessite l'import http_parser
+          contentType: MediaType(
+              'image', 'jpeg'), // Nécessite l'import http_parser
         ),
       });
 
@@ -179,9 +186,9 @@ class ApiService {
   }
 
 
-
   // Fonction de Mise à jour du Profil (PATCH /api/v1/users/me)
-  Future<Map<String, dynamic>> updateUserProfile(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateUserProfile(
+      Map<String, dynamic> data) async {
     try {
       final response = await _dio.patch(
         "/api/v1/users/me/",
@@ -191,12 +198,12 @@ class ApiService {
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
         // Gérer les erreurs métier spécifiques
-        throw Exception(e.response!.data['detail'] ?? "Erreur lors de la mise à jour.");
+        throw Exception(
+            e.response!.data['detail'] ?? "Erreur lors de la mise à jour.");
       }
       throw Exception("Erreur réseau ou du serveur lors de la mise à jour.");
     }
   }
-
 
 
   // funtion add vehicle
@@ -210,8 +217,10 @@ class ApiService {
       //  Créer les objets MultipartFile
       final regCardPart = await MultipartFile.fromFile(
         regCardFile.path,
-        filename: 'registration_card', // Le nom du fichier n'a pas d'importance ici
-        contentType: MediaType('application', 'octet-stream'),//'octet-stream' pour accepter tout type de fichier
+        filename: 'registration_card',
+        // Le nom du fichier n'a pas d'importance ici
+        contentType: MediaType('application',
+            'octet-stream'), //'octet-stream' pour accepter tout type de fichier
       );
       final techInspPart = await MultipartFile.fromFile(
         techInspFile.path,
@@ -244,7 +253,6 @@ class ApiService {
         options: Options(contentType: 'multipart/form-data'),
       );
       return response.data;
-
     } on DioException catch (e) {
       print('CODE ERREUR SERVEUR: ${e.response?.statusCode}');
       print(' RÉPONSE DÉTAILLÉE DU SERVEUR: ${e.response?.data}');
@@ -256,8 +264,6 @@ class ApiService {
       throw Exception(detail);
     }
   }
-
-
 
 
   //service api post trip
@@ -284,10 +290,10 @@ class ApiService {
       final response = await _dio.get("/api/v1/trips/meTrips");
       return response.data; // Retourne la liste des trajets JSON
     } on DioException catch (e) {
-      throw Exception(e.response?.data['detail'] ?? "Erreur de récupération des trajets");
+      throw Exception(
+          e.response?.data['detail'] ?? "Erreur de récupération des trajets");
     }
   }
-
 
 
   Future<List<Map<String, dynamic>>> getDriverVehicles() async {
@@ -302,12 +308,14 @@ class ApiService {
   }
 
   // search suggestion and localisation avec Dio
-  Future<List<Location>> searchLocation(String query, String countryCode) async {
+  Future<List<Location>> searchLocation(String query,
+      String countryCode) async {
     try {
       // On utilise _dio au lieu de http.post
       // Pas besoin de gérer le token ici, l'intercepteur s'en occupe déjà !
       final response = await _dio.post(
-        "/api/v1/locations/searchlocation", // Dio    ajoute déjà le baseUrl automatiquement
+        "/api/v1/locations/searchlocation",
+        // Dio    ajoute déjà le baseUrl automatiquement
         data: {
           'query': query,
           'country_code': countryCode.isEmpty ? 'CM' : countryCode,
@@ -328,8 +336,10 @@ class ApiService {
   }
 
 
-  Future <List<Map<String, dynamic>>> searchTrips (String origin, String destination, String date,String countryCode, {int seats=1}) async{
-    try{
+  Future <List<Map<String, dynamic>>> searchTrips(String origin,
+      String destination, String date, String countryCode,
+      {int seats = 1}) async {
+    try {
       final response = await _dio.get(
         "/api/v1/trips/searchTrip",
         queryParameters: {
@@ -345,6 +355,7 @@ class ApiService {
       throw Exception("Erreur lors de la recherche");
     }
   }
+
   // --- 1. RÉSERVER UN TRAJET ---
   Future<Response> postBooking(Map<String, dynamic> bookingData) async {
     try {
@@ -357,7 +368,8 @@ class ApiService {
     } on DioException catch (e) {
       print('🛑 Erreur Réservation: ${e.response?.data}');
       // On récupère le message d'erreur du backend (ex: "Plus de places")
-      String message = e.response?.data['detail'] ?? "Erreur lors de la réservation";
+      String message = e.response?.data['detail'] ??
+          "Erreur lors de la réservation";
       throw Exception(message);
     }
   }
@@ -370,18 +382,20 @@ class ApiService {
     } on DioException catch (e) {
       print('🛑 Erreur Annulation: ${e.response?.data}');
       // Le message "Annulation impossible moins de 12h avant le départ" viendra d'ici
-      String message = e.response?.data['detail'] ?? "Erreur lors de l'annulation";
+      String message = e.response?.data['detail'] ??
+          "Erreur lors de l'annulation";
       throw Exception(message);
     }
   }
-  
-  Future<Map<String, dynamic>>cancelTrip(int tripId) async{
-    try{
+
+  Future<Map<String, dynamic>> cancelTrip(int tripId) async {
+    try {
       final response = await _dio.delete("/api/v1/trips/$tripId/cancel");
       return response.data;
-    } on DioException catch (e){
+    } on DioException catch (e) {
       print('Erreur de suppression : ${e.response?.data}');
-      String message = e.response?.data['detail']?? "Erreur lors de la suppression";
+      String message = e.response?.data['detail'] ??
+          "Erreur lors de la suppression";
       throw Exception(message);
     }
   }
@@ -431,7 +445,6 @@ class ApiService {
   }
 
 
-
   // RÉCUPÉRER LES PASSAGERS D'UN TRAJET Pour le chauffeur
   Future<List<dynamic>> getTripPassengers(int tripId) async {
     try {
@@ -445,6 +458,7 @@ class ApiService {
       return [];
     }
   }
+
   Future<List<dynamic>> getUserDiscussions() async {
     try {
       // On appelle la route de ton backend FastAPI
@@ -459,5 +473,25 @@ class ApiService {
       rethrow;
     }
   }
-
+  Future <Response> startTrip(int tripId) async {
+    try{
+      final response = await _dio.patch("/api/v1/trips/$tripId/start");
+      return response;
+    }
+    catch(e){
+      debugPrint("🚨 [ApiService] Erreur startTrip: $e");
+      rethrow;
+    }
+  }
+  Future<Response> completeTrip(int tripId) async{
+    try{
+      final response = await _dio.patch("/api/v1/trips/$tripId/complete");
+      return response;
+    }
+    catch(e)
+    {
+      debugPrint("🚨 [ApiService] Erreur startTrip: $e");
+      rethrow;
+    }
+  }
 }

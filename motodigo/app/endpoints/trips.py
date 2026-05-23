@@ -189,3 +189,70 @@ async def search_trip(
             trip.vehicle_model = "Véhicule"
 
     return trips
+
+
+# demarrer un nouveau trajet
+
+@router.patch("/{trip_id}/start")
+async def start_trip(
+        trip_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    """Passer le statut du trajet a stated"""
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trajet introuvable")
+    if trip.driver_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Vous n'etes pas le conducteur de ce trajet")
+    if trip.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Impossible de démarrer un trajet annulé")
+
+    try:
+        trip.status = "started"
+        db.commit()
+        return {"status": "success", "message": "Trajet démarré avec succès ! Prudence sur la route."}
+
+    except Exception as e:
+        db.rollback()
+        print("\n" + "=" * 50)
+        print(f"💥 CRASH CRITIQUE SUR /start : {str(e)}")
+        print("=" * 50 + "\n")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    # Terminer le trajet
+
+
+@router.patch("/{trip_id}/complete")
+async def complete_trip(
+        trip_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    """Clôture le trajet, met à jour les réservations et déclenche la phase de notation"""
+
+    #  Ajout des parenthèses () à la fin de .first() pour exécuter la requête !
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trajet introuvable")
+
+    if trip.driver_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Vous n'êtes pas le conducteur de ce trajet")
+
+    try:
+        trip.status = "completed"
+
+        # Remplacement de 'trip_ip' par 'trip_id' (faute de frappe)
+        db.query(models.Booking).filter(
+            models.Booking.trip_id == trip_id,
+            models.Booking.status.in_(["confirmed", "ongoing"])
+        ).update({"status": "completed"}, synchronize_session=False)
+
+        db.commit()
+        return {"status": "success", "message": "Trajet terminé avec succès. Place aux notations !"}
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la clôture : {str(e)}")

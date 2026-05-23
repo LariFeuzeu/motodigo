@@ -33,7 +33,8 @@ class Trip(Base):
     created_at = Column(DateTime(timezone=True), default=func.now())
 
     __table_args__ = (
-        CheckConstraint(status.in_(['published', 'completed', 'cancelled', 'full']), name='trip_status_check'),
+        CheckConstraint(status.in_(['published', 'started', 'completed', 'cancelled', 'full']),
+                        name='trips_status_check'),
     )
 
     # Relations ORM

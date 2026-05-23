@@ -1,6 +1,6 @@
 // 1. On déclare le plugin Firebase ici avec sa version
 plugins {
-    id("com.google.gms.google-services") version "4.4.0" apply false
+    id("com.google.gms.google-services") version "4.3.15" apply false
 }
 
 allprojects {

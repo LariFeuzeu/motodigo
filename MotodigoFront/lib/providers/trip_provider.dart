@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/location.dart';
+import 'package:dio/dio.dart';
 import '../services/api_service.dart';
 
 class TripProvider with ChangeNotifier {
@@ -483,4 +484,35 @@ class TripProvider with ChangeNotifier {
     _chatMessages = [];
     notifyListeners();
   }
+  Future<void> updateTripStatut(int tripId, String newStatus) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      late final Response response;
+      if (newStatus == 'started') {
+        response = await _apiService.startTrip(tripId);
+      } else {
+        response = await _apiService.completeTrip(tripId);
+      }
+
+      debugPrint("🌐 [TripProvider] Code retour API : ${response.statusCode}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        //  CORRECTION ULTRA-SAFE : On met à jour directement le statut dans notre liste locale
+        final index = _driverTrips.indexWhere((t) => t['id'] == tripId);
+        if (index != -1) {
+          _driverTrips[index]['status'] = newStatus;
+          debugPrint("Statut mis à jour en local pour le trajet $tripId");
+        }
+      }
+
+    } catch (e) {
+      debugPrint("❌ Erreur updateTripStatus ($newStatus): $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners(); //  On éteint obligatoirement le spinner ici
+    }
+  }
 }
+

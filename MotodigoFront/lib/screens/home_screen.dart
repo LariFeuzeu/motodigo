@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.grey.shade200,
         backgroundImage: (user?.profilePhotoUrl != null && user!.profilePhotoUrl!.isNotEmpty)
         ? NetworkImage("${ApiService.baseUrl}${user.profilePhotoUrl}")
-            : const AssetImage("assets/default_avatar.png") as ImageProvider,
+            : const AssetImage("assets/images/mtnmomo.png") as ImageProvider,
         child: (user?.profilePhotoUrl == null)
         ? Text(user?.fullName[0] ?? "?", style: const TextStyle(fontWeight: FontWeight.bold))
             : null,
@@ -524,7 +524,7 @@ class _ProfileDrawerContent extends StatelessWidget {
             backgroundColor: Colors.white,
             backgroundImage: (user.profilePhotoUrl != null && user.profilePhotoUrl!.isNotEmpty)
                 ? NetworkImage("${ApiService.baseUrl}${user.profilePhotoUrl}")
-                : const AssetImage("assets/default_avatar.png") as ImageProvider,
+                : const AssetImage("assets/images/mtnmomo.png") as ImageProvider,
             child: (user.profilePhotoUrl == null || user.profilePhotoUrl!.isEmpty)
                 ? Text(user.fullName[0], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryDark))
                 : null,

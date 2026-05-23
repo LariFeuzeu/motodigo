@@ -18,14 +18,14 @@ class PublishTripScreen extends StatefulWidget {
 class _PublishTripScreenState extends State<PublishTripScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  final int _totalSteps = 9;
+  final int _totalSteps = 16;
 
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _baggageController = TextEditingController();
   final TextEditingController _pickupController = TextEditingController();
   final TextEditingController _dropoffController = TextEditingController();
 
-  int _seats = 3;
+  int _seats = 4;
   String _selectedBaggage = "Moyen";
   int? _selectedVehicleId;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
@@ -147,7 +147,7 @@ class _PublishTripScreenState extends State<PublishTripScreen> {
                   _buildSummaryCard(
                     child: Column(
                       children: [
-                        _buildInfoDetailRow(Icons.calendar_today_rounded, "Date du trajet", DateFormat('EEEE dd MMMM').format(_selectedDate)),
+                        _buildInfoDetailRow(Icons.calendar_today_rounded, "Date & Heure", DateFormat('EEEE dd MMMM • HH:mm').format(_selectedDate)),
                         _buildInfoDetailRow(Icons.directions_car_rounded, "Véhicule", "${vehicle?.displayName}"),
                         _buildInfoDetailRow(Icons.luggage_rounded, "Bagages", "$_selectedBaggage (${_baggageController.text.isEmpty ? 'Standard' : _baggageController.text})"),
                         _buildInfoDetailRow(Icons.person_pin_circle_rounded, "Places", "$_seats disponibles", isLast: true),
@@ -339,26 +339,47 @@ class _PublishTripScreenState extends State<PublishTripScreen> {
     );
   }
 
-  // (Garde tes méthodes _buildDateStep, _buildLocationStep, _buildWaypointsStep, _buildBaggageStep, _buildPriceAndSeatsStep du code précédent)
+
 
   Widget _buildDateStep() {
     return _buildStepTemplate(
       title: "Quand partez-\nvous ?",
-      subtitle: "Choisissez la date de votre départ.",
+      subtitle: "Choisissez la date et l'heure précises de votre départ.",
       child: Column(
         children: [
           _buildInteractiveCard(
             onTap: () async {
-              final date = await showDatePicker(
+              //  Sélection de la date
+              final DateTime? pickedDate = await showDatePicker(
                 context: context,
                 initialDate: _selectedDate,
                 firstDate: DateTime.now(),
                 lastDate: DateTime.now().add(const Duration(days: 90)),
               );
-              if (date != null) setState(() => _selectedDate = date);
+
+              if (pickedDate != null && mounted) {
+                //  Sélection de l'heure juste après validation de la date
+                final TimeOfDay? pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                );
+
+                if (pickedTime != null) {
+                  setState(() {
+                    // On fusionne la date choisie et l'heure choisie dans un seul DateTime
+                    _selectedDate = DateTime(
+                      pickedDate.year,
+                      pickedDate.month,
+                      pickedDate.day,
+                      pickedTime.hour,
+                      pickedTime.minute,
+                    );
+                  });
+                }
+              }
             },
-            icon: Icons.calendar_today_rounded,
-            title: DateFormat('EEEE dd MMMM yyyy').format(_selectedDate),
+            icon: Icons.access_time_filled_rounded, // Icône changée pour symboliser Date + Heure
+            title: DateFormat('EEEE dd MMMM yyyy • HH:mm').format(_selectedDate),
           ),
           const Spacer(),
           _buildPrimaryButton("CONTINUER", onTap: _nextStep),
@@ -366,7 +387,6 @@ class _PublishTripScreenState extends State<PublishTripScreen> {
       ),
     );
   }
-
   Widget _buildLocationStep(String title, String hint, bool isOrigin) {
     return _buildStepTemplate(
       title: title,

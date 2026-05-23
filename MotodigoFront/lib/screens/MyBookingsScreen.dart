@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/trip_provider.dart';
 import '../../utils/app_colors.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -34,41 +35,134 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.primaryDark,
       ),
-      body: tripProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
+      // 🛠️ LA LOGIQUE D'APPEL DU SHIMMER MODIFIÉE ICI
+      body: tripProvider.isLoading && bookings.isEmpty
+          ? _buildBookingShimmer() // Cas 1 : Mémoire vide + chargement réseau -> On montre le Shimmer complet
           : bookings.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: bookings.length,
-        itemBuilder: (context, index) => _buildBookingTicket(bookings[index]),
+          ? _buildEmptyState() // Cas 2 : Réseau fini et vraiment aucune réservation
+          : Stack(
+        children: [
+          // Cas 3 : On affiche directement les données (instantané !)
+          ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: bookings.length,
+            itemBuilder: (context, index) => _buildBookingTicket(bookings[index]),
+          ),
+          // Si ça charge en arrière-plan alors qu'on a déjà des données,
+          // on peut mettre une petite barre discrète en haut (optionnel mais ultra pro)
+          if (tripProvider.isLoading)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: 2,
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentBlue),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 🟢 TON SHIMMER PERSONNALISÉ POUR LES TICKETS DE RÉSERVATION
+  Widget _buildBookingShimmer() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 3, // On simule 3 tickets fantômes
+      itemBuilder: (context, index) => Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Faux ID + Faux Statut Badge
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(width: 60, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                  Container(width: 70, height: 18, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))),
+                ],
+              ),
+              const SizedBox(height: 18),
+              // Fausse Date de calendrier
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today_rounded, size: 13, color: Colors.white),
+                  const SizedBox(width: 6),
+                  Container(width: 120, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Fausses Stations (Départ -> Arrivée)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(width: 45, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                      const SizedBox(height: 6),
+                      Container(width: 70, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                    ],
+                  ),
+                  const Icon(Icons.arrow_forward, color: Colors.white, size: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(width: 45, height: 16, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                      const SizedBox(height: 6),
+                      Container(width: 70, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                    ],
+                  ),
+                ],
+              ),
+              const Divider(height: 40, color: Colors.transparent),
+              // Faux Détails du bas
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(width: 40, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                  Container(width: 60, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildBookingTicket(dynamic booking) {
     final trip = booking['trip'];
-
     final departureDate = DateTime.parse(trip['departure_at'] ?? DateTime.now().toIso8601String());
-
-    // Est-ce que le trajet est déjà passé ?
     final bool isPast = departureDate.isBefore(DateTime.now());
-    // NOUVELLES CONDITIONS
-    final bool isCancelled = booking['status'] == 'Cancelled'; // Si le chauffeur ou le passager a annulé
+    final bool isCancelled = booking['status'] == 'Cancelled';
 
     return Opacity(
-      opacity: (isPast || isCancelled) ? 0.6 : 1.0, // On grise si c'est passé
+      opacity: (isPast || isCancelled) ? 0.6 : 1.0,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isPast ? Colors.grey[100] : Colors.white, // Fond légèrement gris
+          color: isPast ? Colors.grey[100] : Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
         ),
         child: AbsorbPointer(
-          absorbing: isPast, // Empêche de cliquer sur les boutons si c'est passé
+          absorbing: isPast,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -78,12 +172,28 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   _statusBadge(isCancelled ? 'ANNULÉ' : (isPast ? 'TERMINÉ': booking['status'])),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
               Row(
                 children: [
-                  _stationInfo(trip['origin_city'], DateFormat('HH:mm').format(departureDate)),
-                  const Expanded(child: Icon(Icons.arrow_forward, color: AppColors.accentBlue, size: 16)),
-                  _stationInfo(trip['destination_city'], "Arrivée"),
+                  Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.textGrey.withOpacity(0.7)),
+                  const SizedBox(width: 6),
+                  Text(
+                    DateFormat('EEEE dd MMMM', 'fr_FR').format(departureDate).toUpperCase(),
+                    style: const TextStyle(color: AppColors.textGrey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _stationInfo(trip['origin_city'] ?? 'Départ', DateFormat('HH:mm').format(departureDate)),
+                  const Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(Icons.arrow_forward, color: AppColors.accentBlue, size: 16),
+                    ),
+                  ),
+                  _stationInfo(trip['destination_city'] ?? 'Arrivée', "--:--"),
                 ],
               ),
               const Divider(height: 40),
@@ -93,7 +203,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   _detailItem("Places", "${booking['seats_booked']}"),
                   _detailItem("Total", "${booking['amount_total']} CFA"),
 
-                  // On affiche le bouton ANNULER uniquement si ce n'est pas passé
                   if (!isPast && booking['status'] == 'confirmed')
                     TextButton(
                       onPressed: () => _handleCancel(booking['id'], departureDate),
@@ -104,8 +213,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     const Text("ANNULÉ PAR CHAUFFEUR",
                         style: TextStyle(color: AppColors.errorRed, fontSize: 10, fontWeight: FontWeight.bold))
                   else if (isPast)
-                    const Text("ARCHIVÉ",
-                        style: TextStyle(color: AppColors.textGrey, fontSize: 11, fontWeight: FontWeight.bold)),
+                      const Text("ARCHIVÉ",
+                          style: TextStyle(color: AppColors.textGrey, fontSize: 11, fontWeight: FontWeight.bold)),
                 ],
               )
             ],
@@ -118,9 +227,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget _statusBadge(String status) {
     bool isConfirmed = status == 'confirmed' || status == 'PUBLISHED';
     bool isCancelled = status == 'Cancelled' || status == 'ANNULÉ';
-
     Color color = isConfirmed ? AppColors.successGreen : AppColors.errorRed;
-
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

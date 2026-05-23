@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../providers/trip_provider.dart';
 import '../../utils/app_colors.dart';
-import '../screens/ChatScreenState.dart';
+import 'ChatScreenState.dart';
 
 class MyTripsScreen extends StatefulWidget {
   const MyTripsScreen({super.key});
@@ -16,7 +17,6 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
   @override
   void initState() {
     super.initState();
-    // Charger les trajets du chauffeur au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TripProvider>().fetchDriverTrips();
     });
@@ -30,45 +30,150 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
-        title: const Text("MES TRAJETS PUBLIÉS",
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.2)),
+        title: const Text(
+          "MES TRAJETS PUBLIÉS",
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1.2),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: AppColors.primaryDark,
       ),
-      body: tripProvider.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.accentBlue))
+      // 🛠️ LOGIQUE D'APPEL DU SHIMMER OPTIMISÉE
+      body: tripProvider.isLoading && trips.isEmpty
+          ? _buildDriverTripsShimmer() // Cas 1 : Premier chargement réseau (mémoire vide)
           : trips.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
+          ? _buildEmptyState() // Cas 2 : Aucune donnée trouvée
+          : Stack(
+        children: [
+          // Cas 3 : Rendu instantané des trajets en cache local
+          ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: trips.length,
+            itemBuilder: (context, index) => _buildTripCard(trips[index]),
+          ),
+          // Ligne de chargement discrète si mise à jour silencieuse
+          if (tripProvider.isLoading)
+            const Positioned(
+              top: 0, left: 0, right: 0,
+              child: SizedBox(
+                height: 2,
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentBlue),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 🟢 SQUELETTE DE CHARGEMENT POUR LES TRAJETS DU CHAUFFEUR
+  Widget _buildDriverTripsShimmer() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 3,
+      itemBuilder: (context, index) => Container(
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
-        itemCount: trips.length,
-        itemBuilder: (context, index) => _buildTripCard(trips[index]),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Fausse Date + Faux Badge Statut
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(width: 110, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                  Container(width: 60, height: 18, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6))),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Fausses Villes (Origine -> Destination)
+              Row(
+                children: [
+                  const Icon(Icons.radio_button_checked, size: 16, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Container(width: 90, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                ],
+              ),
+              Container(margin: const EdgeInsets.only(left: 7, top: 4, bottom: 4), height: 12, width: 1.5, color: Colors.grey[200]),
+              Row(
+                children: [
+                  const Icon(Icons.location_on_rounded, size: 16, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Container(width: 110, height: 14, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                ],
+              ),
+              const Divider(height: 30, color: Colors.transparent),
+              // Faux Remplissage places
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(width: 140, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                  Container(width: 30, height: 12, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(width: double.infinity, height: 8, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10))),
+              const SizedBox(height: 15),
+              const Divider(height: 1, color: Colors.transparent),
+              const SizedBox(height: 10),
+              // Faux Boutons d'actions
+              Row(
+                children: [
+                  Expanded(child: Container(height: 36, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)))),
+                  const SizedBox(width: 8),
+                  Expanded(child: Container(height: 36, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)))),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildTripCard(Map<String, dynamic> trip) {
-    // Traduction des statuts pour l'UI
     final String status = (trip['status'] ?? 'published').toString().toLowerCase();
-    final bool isCancelled = status == 'cancelled';
-    final bool isFull = status == 'full' || (trip['seats_available'] ?? 0) == 0;
 
-    // Logique de remplissage
-    final int totalSeats = trip['total_seats'] ?? 1;
+    final bool isCancelled = status == 'cancelled';
+    final bool isStarted = status == 'started';
+    final bool isFinished = status == 'completed';
+
+    final int totalSeats = trip['seats_total'] ?? 1;
     final int availableSeats = trip['seats_available'] ?? totalSeats;
-    final int occupiedSeats = totalSeats - availableSeats;
-    double fillPercent = occupiedSeats / totalSeats;
+
+    final int occupiedSeats = (totalSeats - availableSeats).clamp(0, totalSeats);
+    double fillPercent = totalSeats > 0 ? (occupiedSeats / totalSeats).clamp(0.0, 1.0) : 0.0;
+    final bool isFull = occupiedSeats >= totalSeats || status == 'full';
 
     return Opacity(
-      opacity: isCancelled ? 0.5 : 1.0,
+      opacity: isFinished || isCancelled ? 0.6 : 1.0,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: isCancelled ? Colors.grey[50] : Colors.white,
+          color: isFinished ? Colors.grey[100] : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+          boxShadow: [
+            BoxShadow(
+                color: isStarted
+                    ? AppColors.accentBlue.withOpacity(0.08)
+                    : Colors.black.withOpacity(0.03),
+                blurRadius: 12,
+                offset: const Offset(0, 4)
+            )
+          ],
+          border: isStarted
+              ? Border.all(color: AppColors.accentBlue, width: 2.0)
+              : null,
         ),
         child: Column(
           children: [
@@ -79,74 +184,150 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(DateFormat('EEE dd MMM • HH:mm').format(DateTime.parse(trip['departure_at'])),
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textGrey, fontSize: 12)),
+                      Text(
+                        DateFormat('EEE dd MMM • HH:mm').format(DateTime.parse(trip['departure_at'])),
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textGrey, fontSize: 12),
+                      ),
                       _buildStatusBadge(status),
                     ],
                   ),
                   const SizedBox(height: 15),
-                  _buildRouteRow(Icons.radio_button_checked, AppColors.accentBlue, trip['origin_city']),
+                  _buildRouteRow(Icons.radio_button_checked, AppColors.accentBlue, trip['origin_city'] ?? ''),
                   _buildRouteDivider(),
-                  _buildRouteRow(Icons.location_on_rounded, AppColors.errorRed, trip['destination_city']),
+                  _buildRouteRow(Icons.location_on_rounded, AppColors.errorRed, trip['destination_city'] ?? ''),
 
                   const Divider(height: 30),
 
-                  // --- INDICATEUR DE REMPLISSAGE DYNAMIQUE ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        isCancelled ? "ANNULÉ" : "Remplissage : $occupiedSeats/$totalSeats places",
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13,
-                            color: isFull ? AppColors.successGreen : Colors.black),
-                      ),
-                      Text("${(fillPercent * 100).toInt()}%",
-                          style: TextStyle(color: isFull ? AppColors.successGreen : AppColors.accentBlue, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: fillPercent,
-                    backgroundColor: AppColors.lightBackground,
-                    color: isFull ? AppColors.successGreen : AppColors.accentBlue,
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  if (!isFinished && !isCancelled) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          isFull ? "COMPLET 🎉" : "Remplissage : $occupiedSeats/$totalSeats places",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                              color: isFull ? AppColors.successGreen : Colors.black
+                          ),
+                        ),
+                        Text(
+                          "${(fillPercent * 100).toInt()}%",
+                          style: TextStyle(
+                              color: isFull ? AppColors.successGreen : AppColors.accentBlue,
+                              fontWeight: FontWeight.bold
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: fillPercent,
+                      backgroundColor: AppColors.lightBackground,
+                      color: isFull ? AppColors.successGreen : AppColors.accentBlue,
+                      minHeight: 8,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Icon(
+                            isFinished ? Icons.check_circle : Icons.cancel,
+                            color: isFinished ? AppColors.successGreen : AppColors.errorRed,
+                            size: 18
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isFinished ? "TRAJET TERMINÉ (ARCHIVÉ)" : "CE TRAJET A ÉTÉ ANNULÉ",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: isFinished ? AppColors.successGreen : AppColors.errorRed,
+                              fontSize: 13
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
                 ],
               ),
             ),
-            const Divider(height: 1),
-            _buildActionButtons(trip, isCancelled),
+            if (!isFinished && !isCancelled) ...[
+              const Divider(height: 1),
+              _buildActionButtons(trip, status),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionButtons(Map<String, dynamic> trip, bool isCancelled) {
+  Widget _buildActionButtons(Map<String, dynamic> trip, String status) {
+    final bool isStarted = status == 'started';
+    final int tripId = trip['id'];
+
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () => _showPassengerList(trip['id']),
+              onPressed: () => _showPassengerList(tripId),
               icon: const Icon(Icons.people_alt_outlined, size: 16, color: Colors.white),
               label: const Text("PASSAGERS", style: TextStyle(fontSize: 11, color: Colors.white)),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark),
             ),
           ),
-          if (!isCancelled) ...[
-            const SizedBox(width: 10),
-            TextButton(
-              onPressed: () => _showCancelDialog(trip['id']),
-              child: const Text("ANNULER", style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.w900, fontSize: 11)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () async {
+                print("📱 CLIC DÉTECTÉ SUR LE BOUTON !");
+                if (!isStarted) {
+                  await context.read<TripProvider>().updateTripStatut(tripId, 'started');
+                } else {
+                  _showFinishConfirmDialog(tripId);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isStarted ? AppColors.successGreen : AppColors.accentBlue,
+              ),
+              child: Text(
+                isStarted ? "FINIR LE TRAJET" : "DÉMARRER",
+                style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          if (!isStarted) ...[
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: AppColors.errorRed),
+              onPressed: () => _showCancelDialog(tripId),
             ),
           ]
         ],
       ),
     );
   }
+
+  void _showFinishConfirmDialog(int tripId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Clôturer le trajet ?"),
+        content: const Text("Le trajet sera marqué comme terminé et archivé. Vos passagers pourront émettre des avis."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ANNULER")),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await context.read<TripProvider>().updateTripStatut(tripId, 'completed');
+            },
+            child: const Text("CONFIRMER", style: TextStyle(color: AppColors.successGreen, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showPassengerList(int tripId) {
     showModalBottomSheet(
       context: context,
@@ -168,7 +349,6 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
             ),
             Expanded(
               child: FutureBuilder<List<dynamic>>(
-                // On appelle le provider pour récupérer les passagers de ce trajet
                 future: context.read<TripProvider>().getTripPassengers(tripId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -188,15 +368,17 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: AppColors.accentBlue.withOpacity(0.1),
-                          child: Text(p['full_name'][0], style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.bold)),
+                          child: Text(
+                              p['full_name'] != null && p['full_name'].isNotEmpty ? p['full_name'][0].toUpperCase() : 'P',
+                              style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.bold)
+                          ),
                         ),
-                        title: Text(p['full_name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(p['full_name'] ?? 'Passager', style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text("${p['seats_booked']} place(s) réservée(s)"),
                         trailing: IconButton(
                           icon: const Icon(Icons.chat_bubble_outline, color: AppColors.accentBlue),
                           onPressed: () {
-                            // On peut ouvrir le chat directement ici !
-                            _goToChat(tripId, p['user_id'], p['full_name']);
+                            _goToChat(tripId, p['user_id'], p['full_name'] ?? 'Passager');
                           },
                         ),
                       );
@@ -211,7 +393,6 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
     );
   }
 
-  // Petit helper pour naviguer vers le chat depuis la liste
   void _goToChat(int tripId, int receiverId, String name) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(
       tripId: tripId,
@@ -219,7 +400,7 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
       receiverName: name,
     )));
   }
-  // Widgets Helper (Route, Divider, Status)
+
   Widget _buildRouteRow(IconData icon, Color color, String city) {
     return Row(children: [
       Icon(icon, size: 16, color: color),
@@ -236,11 +417,31 @@ class _MyTripsScreenState extends State<MyTripsScreen> {
   }
 
   Widget _buildStatusBadge(String status) {
-    Color color = status == 'published' ? AppColors.successGreen : AppColors.errorRed;
+    Color color;
+    String text;
+
+    switch (status) {
+      case 'started':
+        color = AppColors.accentBlue;
+        text = "EN COURS";
+        break;
+      case 'completed':
+        color = AppColors.successGreen;
+        text = "TERMINÉ";
+        break;
+      case 'cancelled':
+        color = AppColors.errorRed;
+        text = "ANNULÉ";
+        break;
+      default:
+        color = Colors.orange;
+        text = "PUBLIÉ";
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-      child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900)),
+      child: Text(text, style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900)),
     );
   }
 
