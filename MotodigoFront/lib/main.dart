@@ -119,46 +119,28 @@ class AppRouter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    // //  STRATÉGIE WEB (FRONT OFFICE)
-    // if (kIsWeb) {
-    //   return const LandingPage(); // Le site vitrine s'affiche par défaut sur navigateur
-    // }
     return Consumer2<AuthProvider, UserProvider>(
       builder: (context, auth, userProv, _) {
+        //  Splash Screen : Firebase n'est pas encore prêt
         if (!auth.initialized) return const CustomSplashScreen();
+
+        //  Non authentifié : écran de login
         if (!auth.isLoggedIn) return const PhoneInputScreen();
 
+        //  Authentifié mais données utilisateur manquantes
+        // Ici, on ne met plus le Scaffold avec le CircularProgressIndicator
         if (userProv.currentUser == null) {
+          // On déclenche le chargement si ce n'est pas déjà en cours
           if (!userProv.isLoading) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               userProv.fetchUserProfile();
             });
           }
+          // On retourne directement le Shimmer (zéro circulaire, zéro texte)
           return const HomeShimmer();
-          // return Scaffold(
-          //   backgroundColor: Colors.white,
-          //   body: Center(
-          //     child: Column(
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       children: [
-          //         const CircularProgressIndicator(color: AppColors.accentBlue),
-          //         const SizedBox(height: 25),
-          //         const Text(
-          //           "Préparation de votre espace...",
-          //           style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark),
-          //         ),
-          //         const SizedBox(height: 10),
-          //         TextButton(
-          //           onPressed: () => auth.logout(),
-          //           child: const Text("Annuler", style: TextStyle(color: AppColors.errorRed)),
-          //         )
-          //       ],
-          //     ),
-          //   ),
-          // );
         }
 
+        // 4. Données chargées : Home
         return const HomeScreen();
       },
     );

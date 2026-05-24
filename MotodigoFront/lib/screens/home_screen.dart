@@ -17,6 +17,7 @@ import '../widgets/profile_drawer.dart';
 
 import '../screens/PhoneInputScreen.dart';
 import '../screens/messages_list_screen.dart';
+import '../widgets/shimmer_widgets.dart';
 import 'vehicule_registration.dart';
 import 'PublishTripScreen.dart';
 import 'search_trip_screen.dart';
@@ -75,13 +76,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final tripProvider = context.watch<TripProvider>();
     final currentUser = userProvider.currentUser;
 
-    if (userProvider.isLoading && currentUser == null) {
+    // Si on n'a pas encore l'utilisateur, on affiche le Shimmer (via l'AppRouter ou ici en sécurité)
+    if (currentUser == null) {
       return const Scaffold(
         backgroundColor: AppColors.lightBackground,
-        body: Center(child: CircularProgressIndicator(color: Colors.orange)),
+        body: HomeShimmer(),
       );
     }
-
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.lightBackground,

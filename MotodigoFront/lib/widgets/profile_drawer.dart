@@ -120,9 +120,22 @@ class ProfileDrawer extends StatelessWidget {
                   style: TextStyle(color: AppColors.errorRed, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 onTap: () async {
-                  await context.read<AuthProvider>().logout();
+                  //
+                  // On ferme le drawer instantanément pour donner une sensation de rapidité
+                  Navigator.pop(context);
+
+                  //
+                  // On ne fait pas attendre l'UI pour la réponse serveur
+                  context.read<AuthProvider>().logout();
+
+                  //
+                  // On utilise pushAndRemoveUntil pour nettoyer toute la pile de navigation
                   if (context.mounted) {
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const PhoneInputScreen()), (r) => false);
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PhoneInputScreen()),
+                            (route) => false
+                    );
                   }
                 },
               ),
@@ -246,7 +259,7 @@ class ProfileDrawer extends StatelessWidget {
     );
   }
 
-  // 🎨 Widget : Boutons du menu élégants
+  //  Boutons du menu élégants
   Widget _buildMenuTile({
     required IconData icon,
     required String title,
