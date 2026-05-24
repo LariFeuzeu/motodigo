@@ -338,10 +338,12 @@ class TripProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadUserBookings() async {
-    _isLoading = true;
-    notifyListeners();
-
+  Future<void> loadUserBookings({bool silent = false }) async {
+    //  Si on N'EST PAS en mode silent, on active le chargement principal (Shimmer)
+    if (!silent) {
+      _isLoading = true;
+      notifyListeners();
+    }
     try {
       // On va chercher les données sur le serveur
       final results = await _apiService.getMyBookings();
@@ -353,8 +355,11 @@ class TripProvider with ChangeNotifier {
     } catch (e) {
       debugPrint("Erreur: $e");
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      //Si on N'EST PAS en mode silent, on coupe le chargement principal
+      if (!silent) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -512,6 +517,30 @@ class TripProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners(); //  On éteint obligatoirement le spinner ici
+    }
+  }
+
+  // --- ENVOYER UN AVIS / REVIEW ---
+  Future<String?> sendTripReview({
+    required int tripId,
+    required int toUserId,
+    required int rating,
+    String? comment,
+  }) async {
+    try {
+      final response = await _apiService.postReview({
+        'trip_id': tripId,
+        'to_user': toUserId,
+        'rating': rating,
+        'comment': comment,
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return null; // Tout est parfait !
+      }
+      return "Une erreur est survenue lors de l'enregistrement de votre avis.";
+    } catch (e) {
+      return e.toString().replaceAll("Exception: ", "");
     }
   }
 }

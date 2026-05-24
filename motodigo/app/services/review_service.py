@@ -28,7 +28,7 @@ def process_create_review(db: Session, review_data: ReviewCreate, from_user_id: 
             detail="Vous ne pouvez émettre un avis que sur un trajet terminé."
         )
 
-    # Anti-fraude : S'assurer que les deux utilisateurs ont bien participé au trajet
+    # S'assurer que les deux utilisateurs ont bien participé au trajet
     is_driver_involved = (trip.driver_id == from_user_id or trip.driver_id == review_data.to_user)
 
     # Extraction des passagers qui ont validé/confirmé leur réservation

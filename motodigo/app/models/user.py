@@ -32,3 +32,11 @@ class User(Base):
     bookings_as_passenger = relationship("Booking", back_populates="passenger")
     reviews_given = relationship("Review", foreign_keys="[Review.from_user]", back_populates="reviewer")
     reviews_received = relationship("Review", foreign_keys="[Review.to_user]", back_populates="reviewee")
+
+    @property
+    def rating(self) -> float:
+        """Calcule la moyenne des notes reçues par cet utilisateur"""
+        if not self.reviews_received:
+            return 0.0
+        ratings = [review.rating for review in self.reviews_received if review.rating is not None]
+        return round(sum(ratings) / len(ratings), 1) if ratings else 0.0

@@ -236,9 +236,22 @@ class _PublishTripScreenState extends State<PublishTripScreen> {
             child: Icon(icon, size: 18, color: AppColors.textGrey),
           ),
           const SizedBox(width: 12),
+
+          // Le libellé à gauche
           Text(label, style: const TextStyle(color: AppColors.textGrey, fontSize: 13, fontWeight: FontWeight.w500)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primaryDark)),
+
+          const SizedBox(width: 16), // Une petite marge de sécurité minimale entre le libellé et la valeur
+
+          //  On remplace le Spacer par un Expanded
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end, //  Aligne le texte à droite (comme le Spacer faisait)
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primaryDark),
+              maxLines: 1, //  Empêche de casser le design sur deux lignes
+              overflow: TextOverflow.ellipsis, //  Ajoute  proprement si la date est trop longue
+            ),
+          ),
         ],
       ),
     );

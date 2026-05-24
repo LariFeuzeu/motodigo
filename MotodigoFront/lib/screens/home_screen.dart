@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
-import '../services/api_service.dart';
-import '../widgets/shimmer_widgets.dart';
 
 import '../../providers/user_provider.dart';
 import '../../providers/trip_provider.dart';
@@ -12,19 +10,17 @@ import '../../providers/auth_provider.dart';
 import '../../models/user.dart';
 import '../../models/location.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/app_constants.dart';
 import '../../widgets/location_autocomplete_field.dart';
+import '../services/api_service.dart';
+import '../widgets/profile_drawer.dart';
 
 import '../screens/PhoneInputScreen.dart';
 import '../screens/messages_list_screen.dart';
-
-// --- NAVIGATION ---
-import '../widgets/shimmer_widgets.dart';
 import 'vehicule_registration.dart';
 import 'PublishTripScreen.dart';
 import 'search_trip_screen.dart';
 import 'trip_detail_screen.dart';
-import 'MyBookingsScreen.dart';
-import 'MyTripsScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,13 +32,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // États pour la recherche
   Location? _startLocation;
   Location? _endLocation;
   DateTime _selectedDate = DateTime.now();
   int _passengerCount = 1;
-
-  // État de la navigation
   int _currentNavIndex = 0;
 
   @override
@@ -53,11 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadInitialData() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final userProv = context.read<UserProvider>();
-      userProv.fetchUserProfile().then((_) {
-        context.read<TripProvider>().fetchSearchTrips("", "", "", userProv.userCountryCode);
-      });
+      final tripProv = context.read<TripProvider>();
+
+      // Chargement du profil utilisateur pour récupérer son pays d'origine (GPS/Profil)
+      await userProv.fetchUserProfile();
+
+      // Utilisation du code pays pour charger les trajets locaux ciblés
+      String countryCode = userProv.userCountryCode.isNotEmpty ? userProv.userCountryCode : 'CM';
+      await tripProv.fetchSearchTrips("", "", "", countryCode);
     });
   }
 
@@ -77,41 +75,39 @@ class _HomeScreenState extends State<HomeScreen> {
     final tripProvider = context.watch<TripProvider>();
     final currentUser = userProvider.currentUser;
 
-    // Si le profil est nul et que ça charge, on montre le squelette pro.
     if (userProvider.isLoading && currentUser == null) {
-      return const HomeShimmer();
+      return const Scaffold(
+        backgroundColor: AppColors.lightBackground,
+        body: Center(child: CircularProgressIndicator(color: Colors.orange)),
+      );
     }
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.lightBackground,
-      endDrawer: Drawer(
-        width: width * 0.85,
-        child: currentUser != null
-            ? _ProfileDrawerContent(user: currentUser, scale: scale)
-            : const Center(child: CircularProgressIndicator()),
-      ),
+      endDrawer: currentUser != null
+          ? ProfileDrawer(user: currentUser, scale: scale)
+          : const Drawer(child: Center(child: CircularProgressIndicator())),
       bottomNavigationBar: _buildPremiumBottomNav(scale),
-      // IndexedStack permet de changer de page sans perdre le scroll de l'accueil
       body: IndexedStack(
         index: _currentNavIndex,
         children: [
-          _buildHomeBody(userProvider, tripProvider, currentUser, scale), // Index 0
-          const MessagesListScreen(),                                     // Index 1
-          const Center(child: Text("Alertes (Bientôt disponible)")),     // Index 2
-          const Center(child: Text("Profil")),                            // Index 3
+          _buildHomeBody(userProvider, tripProvider, currentUser, scale),
+          const MessagesListScreen(),
+          const Center(child: Text("Alertes (Bientôt disponible)")),
         ],
       ),
     );
   }
 
-  // --- CONTENU DE LA PAGE ACCUEIL (EXPLORER) ---
   Widget _buildHomeBody(UserProvider userProvider, TripProvider tripProvider, User? currentUser, double scale) {
     return SafeArea(
       child: RefreshIndicator(
         color: AppColors.accentBlue,
         onRefresh: () async {
           await userProvider.fetchUserProfile();
-          await tripProvider.fetchSearchTrips("", "", "", userProvider.userCountryCode);
+          String countryCode = userProvider.userCountryCode.isNotEmpty ? userProvider.userCountryCode : 'CM';
+          await tripProvider.fetchSearchTrips("", "", "", countryCode);
         },
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -128,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: 30 * scale),
               _sectionHeader("TRAJETS À PROXIMITÉ", "VOIR TOUT", scale, () => _handleSeeAll()),
               SizedBox(height: 15 * scale),
+              // 🔥 Appel de notre liste fluide optimisée
               _buildHorizontalTripList(tripProvider, scale),
               SizedBox(height: 30 * scale),
             ],
@@ -137,9 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- HEADER : Nom & Badge ---
   Widget _buildHeader(User? user, bool isLoading, double scale) {
     bool isDriver = user?.role == 'driver';
+    final double rating = user?.rating ?? 0.0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -148,8 +146,17 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text("Content de vous revoir,",
                 style: TextStyle(fontSize: 13 * scale, color: AppColors.textGrey, fontWeight: FontWeight.w500)),
-            Text(user?.fullName ?? 'Chargement...',
-                style: TextStyle(fontSize: 22 * scale, fontWeight: FontWeight.w900, color: AppColors.primaryDark)),
+            Row(
+              children: [
+                Text(user?.fullName ?? 'Chargement...',
+                    style: TextStyle(fontSize: 22 * scale, fontWeight: FontWeight.w900, color: AppColors.primaryDark)),
+                if (isDriver && rating > 0) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                  Text(" ${rating.toStringAsFixed(1)}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                ]
+              ],
+            ),
             Container(
               margin: const EdgeInsets.only(top: 4),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -168,25 +175,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-    GestureDetector(
-        onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-        child: CircleAvatar(
-        radius: 25 * scale,
-        backgroundColor: Colors.grey.shade200,
-        backgroundImage: (user?.profilePhotoUrl != null && user!.profilePhotoUrl!.isNotEmpty)
-        ? NetworkImage("${ApiService.baseUrl}${user.profilePhotoUrl}")
-            : const AssetImage("assets/images/mtnmomo.png") as ImageProvider,
-        child: (user?.profilePhotoUrl == null)
-        ? Text(user?.fullName[0] ?? "?", style: const TextStyle(fontWeight: FontWeight.bold))
-            : null,
-        ),
-
+        GestureDetector(
+          onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+          child: CircleAvatar(
+            radius: 25 * scale,
+            backgroundColor: AppColors.accentBlue.withOpacity(0.1),
+            backgroundImage: (user?.profilePhotoUrl != null && user!.profilePhotoUrl!.isNotEmpty)
+                ? NetworkImage("${ApiService.baseUrl}${user.profilePhotoUrl}")
+                : null,
+            child: (user?.profilePhotoUrl == null || user!.profilePhotoUrl!.isEmpty)
+                ? Text(
+              user?.fullName != null && user!.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : "?",
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+            )
+                : null,
+          ),
         )
       ],
     );
   }
 
-  // --- CARTE DE RECHERCHE ---
   Widget _buildSearchCard(double scale) {
     return Container(
       padding: EdgeInsets.all(18 * scale),
@@ -227,7 +235,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- BANNIÈRE D'ACTION ---
   Widget _buildActionBanner(User? user, bool isLoading, double scale) {
     if (user == null && isLoading) return const SizedBox();
     final isDriver = user?.role == 'driver';
@@ -253,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- BARRE DE NAVIGATION BASSE ---
   Widget _buildPremiumBottomNav(double scale) {
     return Container(
       decoration: BoxDecoration(
@@ -269,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _navIcon(0, Icons.explore_rounded, "Explorer", scale),
               _navIcon(1, Icons.message_outlined, "Messages", scale),
               _navIcon(2, Icons.notifications_none_rounded, "Alertes", scale),
-              _navIcon(3, Icons.account_circle_outlined, "Moi", scale, isProfile: true),
+              _navIcon(3, Icons.account_circle_outlined, "Moi", scale, isDrawerTrigger: true),
             ],
           ),
         ),
@@ -277,17 +283,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _navIcon(int idx, IconData icon, String label, double scale, {bool isProfile = false}) {
-    bool active = _currentNavIndex == idx;
+  Widget _navIcon(int idx, IconData icon, String label, double scale, {bool isDrawerTrigger = false}) {
+    bool active = _currentNavIndex == idx && !isDrawerTrigger;
     return InkWell(
       onTap: () {
-        if (isProfile) {
+        if (isDrawerTrigger) {
           _scaffoldKey.currentState?.openEndDrawer();
         } else {
           setState(() => _currentNavIndex = idx);
-        }
-        if (idx == 1){
-          context.read<TripProvider>().fetchUserDiscussions();
+          if (idx == 1) {
+            context.read<TripProvider>().fetchUserDiscussions();
+          }
         }
       },
       child: Column(
@@ -301,7 +307,61 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- HELPERS WIDGETS ---
+  Widget _buildHorizontalTripList(TripProvider provider, double scale) {
+    // 🔥 FLUIDITÉ : Si ça charge, on affiche une vraie liste horizontale fantôme animée
+    if (provider.isLoading) return _buildHorizontalShimmerList(scale);
+
+    final trips = provider.filteredTrips;
+
+    if (trips.isEmpty) {
+      return Container(
+        height: 140 * scale,
+        alignment: Alignment.center,
+        child: Text(
+          "Aucun trajet disponible à proximité",
+          style: TextStyle(color: AppColors.textGrey, fontSize: 13 * scale, fontWeight: FontWeight.w500),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 165 * scale,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: trips.length,
+        itemBuilder: (context, index) => _TripShortcutCard(
+            trip: trips[index],
+            scale: scale
+        ),
+      ),
+    );
+  }
+
+  // 🔥 FLUIDITÉ : Le squelette Shimmer horizontal parfait
+  Widget _buildHorizontalShimmerList(double scale) {
+    return SizedBox(
+      height: 165 * scale,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 3,
+        itemBuilder: (context, index) => Shimmer.fromColors(
+          baseColor: Colors.grey[200]!,
+          highlightColor: Colors.grey[50]!,
+          child: Container(
+            width: 250 * scale,
+            margin: EdgeInsets.only(right: 16 * scale),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24 * scale),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildLocationInput(IconData icon, Color color, String hint, Function(Location) onSelected, double scale) {
     return Row(
       children: [
@@ -341,37 +401,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHorizontalTripList(TripProvider provider, double scale) {
-    if (provider.isLoading) return _buildShimmerCard(scale);
-
-    // ON APPELLE LE GETTER ICI
-    final trips = provider.filteredTrips;
-
-    if (trips.isEmpty) {
-      return Container(
-        height: 100 * scale,
-        alignment: Alignment.center,
-        child: Text(
-          "Aucun trajet disponible pour le moment",
-          style: TextStyle(color: AppColors.textGrey, fontSize: 13 * scale),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 165 * scale,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: trips.length,
-        // On utilise la liste filtrée
-        itemBuilder: (context, index) => _TripShortcutCard(
-            trip: trips[index],
-            scale: scale
-        ),
-      ),
-    );
-  }
-
   Widget _sectionHeader(String title, String action, double scale, VoidCallback onAction) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -379,14 +408,6 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(title, style: TextStyle(fontSize: 12 * scale, fontWeight: FontWeight.w900, color: AppColors.textGrey)),
         TextButton(onPressed: onAction, child: Text(action, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
       ],
-    );
-  }
-
-  Widget _buildShimmerCard(double scale) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(height: 165, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))),
     );
   }
 
@@ -413,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// --- CARD RACCOURCI ---
+// --- CARD RACCOURCI PREMIUM ---
 class _TripShortcutCard extends StatelessWidget {
   final Map<String, dynamic> trip;
   final double scale;
@@ -421,9 +442,12 @@ class _TripShortcutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Parsing de la date pour l'affichage
-    DateTime departureDate = DateTime.parse(trip['departure_at']);
-    String formattedDate = DateFormat('dd MMM, HH:mm').format(departureDate);
+    // Extraction sécurisée des dates avec fallback pour éviter les crashs d'UI
+    String formattedDate = "...";
+    if (trip['departure_at'] != null) {
+      DateTime departureDate = DateTime.parse(trip['departure_at']);
+      formattedDate = DateFormat('dd MMM, HH:mm').format(departureDate);
+    }
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -432,14 +456,14 @@ class _TripShortcutCard extends StatelessWidget {
       ),
       child: Container(
         width: 250 * scale,
-        margin: EdgeInsets.only(right: 16 * scale),
-        padding: EdgeInsets.all(18 * scale),
+        margin: EdgeInsets.only(right: 16 * scale, bottom: 4 * scale), // Légère marge basse pour l'ombre
+        padding: EdgeInsets.all(14 * scale), // Réduction légère du padding interne pour donner de l'air
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24 * scale),
+          borderRadius: BorderRadius.circular(22 * scale),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )
@@ -448,110 +472,94 @@ class _TripShortcutCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Badge de temps restant ou Date
+            // Badge Date & Heure
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.accentBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.accentBlue.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 formattedDate,
                 style: const TextStyle(
                   color: AppColors.accentBlue,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            // Itinéraire
-            Text(
-              "${trip['origin_city']}",
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16 * scale),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            SizedBox(height: 10 * scale),
+
+            // Ville de Départ
+            Row(
+              children: [
+                const Icon(Icons.radio_button_checked, size: 12, color: AppColors.accentBlue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "${trip['origin_city'] ?? 'Ville inconnue'}",
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13 * scale, color: AppColors.primaryDark),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            Icon(Icons.arrow_downward, size: 14, color: Colors.grey.shade400),
-            Text(
-              "${trip['destination_city']}",
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16 * scale),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+
+            // 🔥 Ligne de liaison corrigée (plus d'overflow ici)
+            Padding(
+              padding: EdgeInsets.only(left: 5, top: 2 * scale, bottom: 2 * scale),
+              child: Container(width: 2, height: 10 * scale, color: Colors.grey.shade200),
             ),
-            const Spacer(),
-            // Prix
+
+            // Ville d'Arrivée
+            Row(
+              children: [
+                const Icon(Icons.location_on_rounded, size: 12, color: AppColors.errorRed),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "${trip['destination_city'] ?? 'Ville inconnue'}",
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13 * scale, color: AppColors.primaryDark),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+
+            const Spacer(), // Pousse proprement le bloc financier vers le bas
+            const Divider(height: 1, color: Color(0xFFF3F4F6)),
+            SizedBox(height: 6 * scale),
+
+            // Prix et Places restantes
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${trip['price_per_seat']} CFA",
+                  "${trip['price_per_seat'] ?? '0'} CFA",
                   style: const TextStyle(
                     color: AppColors.successGreen,
                     fontWeight: FontWeight.w900,
-                    fontSize: 18,
+                    fontSize: 15,
                   ),
                 ),
-                Text(
-                  "${trip['seats_available']} pl.",
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    "${trip['seats_available'] ?? '0'} pl.",
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-// --- DRAWER ---
-class _ProfileDrawerContent extends StatelessWidget {
-  final User user;
-  final double scale;
-  const _ProfileDrawerContent({required this.user, required this.scale});
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isDriver = user.role == 'driver';
-    return Column(
-      children: [
-        UserAccountsDrawerHeader(
-          decoration: const BoxDecoration(gradient: AppColors.premiumGradient),
-          accountName: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-          accountEmail: Text(isDriver ? "Chauffeur" : "Passager"),
-          currentAccountPicture: CircleAvatar(
-            backgroundColor: Colors.white,
-            backgroundImage: (user.profilePhotoUrl != null && user.profilePhotoUrl!.isNotEmpty)
-                ? NetworkImage("${ApiService.baseUrl}${user.profilePhotoUrl}")
-                : const AssetImage("assets/images/mtnmomo.png") as ImageProvider,
-            child: (user.profilePhotoUrl == null || user.profilePhotoUrl!.isEmpty)
-                ? Text(user.fullName[0], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryDark))
-                : null,
-          ),
-        ),
-        ListTile(
-          leading: const Icon(Icons.history),
-          title: const Text("Mes Réservations"),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyBookingsScreen())),
-        ),
-        if (isDriver)
-          ListTile(
-            leading: const Icon(Icons.directions_car),
-            title: const Text("Mes Trajets"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyTripsScreen())),
-          ),
-        const Spacer(),
-        ListTile(
-          leading: const Icon(Icons.logout, color: Colors.red),
-          title: const Text("Déconnexion", style: TextStyle(color: Colors.red)),
-          onTap: () async {
-            await context.read<AuthProvider>().logout();
-            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const PhoneInputScreen()), (r) => false);
-          },
-        ),
-        const SizedBox(height: 20),
-      ],
     );
   }
 }

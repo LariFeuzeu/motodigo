@@ -226,22 +226,68 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     );
   }
 
-  // --- CARTE CHAUFFEUR ---
+  //
+  // --- CARTE CHAUFFEUR AVEC NOTE ÉTOILÉE ---
   Widget _buildDriverCard(double scale) {
+    // 1. On extrait la note du chauffeur depuis la Map du trajet en toute sécurité
+    final double driverRating = (widget.trip['driver_rating'] ?? 0.0).toDouble();
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20 * scale),
       padding: EdgeInsets.all(20 * scale),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24 * scale), border: Border.all(color: Colors.grey.shade100)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24 * scale),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
       child: Row(
         children: [
-          CircleAvatar(radius: 28, backgroundColor: AppColors.lightBackground, child: const Icon(Icons.person_outline_rounded, color: AppColors.primaryDark, size: 30)),
-          SizedBox(width: 15 * scale),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(widget.trip['driver_name'] ?? "Chauffeur", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              Text(widget.trip['vehicle_model'] ?? "Véhicule Premium", style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w600)),
-            ]),
+          // Avatar du Chauffeur
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.lightBackground,
+            child: const Icon(Icons.person_outline_rounded, color: AppColors.primaryDark, size: 30),
           ),
+          SizedBox(width: 15 * scale),
+
+          // Informations Chauffeur (Nom, Véhicule, Note)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.trip['driver_name'] ?? "Chauffeur",
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.trip['vehicle_model'] ?? "Véhicule Premium",
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+
+                // BADGE ÉTOILÉ DYNAMIQUE (S'affiche si le chauffeur a déjà des avis)
+                if (driverRating > 0) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        driverRating.toStringAsFixed(1), // Affiche ex: "4.5"
+                        style: TextStyle(
+                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12 * scale,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Indicateur Profil Vérifié
           const Icon(Icons.verified_rounded, color: Colors.green, size: 24),
         ],
       ),

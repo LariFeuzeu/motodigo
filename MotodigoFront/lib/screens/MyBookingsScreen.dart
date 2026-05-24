@@ -1,9 +1,11 @@
+import 'dart:async'; // Pour le Timer temps réel
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/trip_provider.dart';
 import '../../utils/app_colors.dart';
-import '../widgets/shimmer_widgets.dart'; // Contient ton ShimmerBlock
+import '../widgets/shimmer_widgets.dart';
+import '../widgets/review_bottom_sheet.dart'; // Import du BottomSheet créé ci-dessus
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -13,12 +15,28 @@ class MyBookingsScreen extends StatefulWidget {
 }
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
+  Timer? _refreshTimer; // Met à jour le statut en tâche de fond
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Premier chargement complet (avec Shimmer)
       context.read<TripProvider>().loadUserBookings();
+
+      // Polling fluide toutes les 5 secondes
+      _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+        if (mounted) {
+          context.read<TripProvider>().loadUserBookings(silent: true);
+        }
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel(); // Coupe le timer à la fermeture de l'écran
+    super.dispose();
   }
 
   @override
@@ -36,7 +54,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         foregroundColor: AppColors.primaryDark,
       ),
       body: tripProvider.isLoading && bookings.isEmpty
-          ? _buildBookingShimmerList() // 🟢 Appel de ta nouvelle liste de ShimmerBlocks
+          ? _buildBookingShimmerList()
           : bookings.isEmpty
           ? _buildEmptyState()
           : Stack(
@@ -64,12 +82,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  /// 🟢 NOUVELLE MÉTHODE OPTIMISÉE AVEC TES SHIMMERBLOCKS
   Widget _buildBookingShimmerList() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: 3, // Simule 3 tickets en attente
+      itemCount: 3,
       itemBuilder: (context, index) => Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
@@ -81,7 +98,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Faux ID + Faux Statut Badge
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
@@ -90,8 +106,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ],
             ),
             const SizedBox(height: 18),
-
-            // Fausse Date de calendrier
             Row(
               children: const [
                 Icon(Icons.calendar_today_rounded, size: 13, color: Colors.grey),
@@ -100,8 +114,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ],
             ),
             const SizedBox(height: 20),
-
-            // Fausses Stations (Départ -> Arrivée)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -125,8 +137,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ],
             ),
             const Divider(height: 40, color: Colors.transparent),
-
-            // Faux Détails du bas
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
@@ -143,21 +153,22 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget _buildBookingTicket(dynamic booking) {
     final trip = booking['trip'];
     final departureDate = DateTime.parse(trip['departure_at'] ?? DateTime.now().toIso8601String());
-    final bool isPast = departureDate.isBefore(DateTime.now());
+    // On considère ici comme terminé si la date est passée OU si le statut côté API indique complété/terminé
+    final bool isPast = departureDate.isBefore(DateTime.now()) || trip['status'] == 'completed';
     final bool isCancelled = booking['status'] == 'Cancelled';
 
     return Opacity(
-      opacity: (isPast || isCancelled) ? 0.6 : 1.0,
+      opacity: (isPast || isCancelled) ? 0.8 : 1.0,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isPast ? Colors.grey[100] : Colors.white,
+          color: isPast ? Colors.grey[50] : Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
         ),
         child: AbsorbPointer(
-          absorbing: isPast,
+          absorbing: isCancelled,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -209,9 +220,34 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   else if (isCancelled)
                     const Text("ANNULÉ PAR CHAUFFEUR",
                         style: TextStyle(color: AppColors.errorRed, fontSize: 10, fontWeight: FontWeight.bold))
+
+                  // 🔥 ACTION FLUIDE ET DYNAMIQUE DE NOTATION SI LE TRAJET EST PASSÉ / TERMINÉ
                   else if (isPast)
-                      const Text("ARCHIVÉ",
-                          style: TextStyle(color: AppColors.textGrey, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          final int driverId = trip['driver_id'] ?? 0;
+                          final String driverName = trip['driver_name'] ?? 'le chauffeur';
+
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => ReviewBottomSheet(
+                              tripId: trip['id'],
+                              toUserId: driverId,
+                              toUserName: driverName,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                        label: const Text("NOTER LE CHAUFFEUR", style: TextStyle(fontSize: 10, color: AppColors.primaryDark, fontWeight: FontWeight.w900)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber.withOpacity(0.15),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
                 ],
               )
             ],
@@ -223,8 +259,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _statusBadge(String status) {
     bool isConfirmed = status == 'confirmed' || status == 'PUBLISHED';
-    bool isCancelled = status == 'Cancelled' || status == 'ANNULÉ';
-    Color color = isConfirmed ? AppColors.successGreen : AppColors.errorRed;
+    bool isTerminated = status == 'TERMINÉ' || status == 'completed';
+    Color color = isConfirmed ? AppColors.successGreen : (isTerminated ? AppColors.primaryDark : AppColors.errorRed);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

@@ -12,7 +12,7 @@ class User {
   final String? profilePhotoUrl;
   final String? requestedRole; // Optionnel (peut être null)
   final List<Vehicle> vehicles;
-
+  final double rating;
   User({
     required this.id,
     required this.firebaseUid,
@@ -25,6 +25,7 @@ class User {
     this.requestedRole,
     this.vehicleId,
     this.vehicles = const [],
+    required this.rating,
   });
 
   // Factory Constructor pour créer un objet User à partir du JSON
@@ -36,6 +37,7 @@ class User {
       email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       role: json['role']?.toString() ?? 'user',
+      rating: (json['rating'] ?? 0.0).toDouble(),
       profilePhotoUrl: json['profile_photo_url']?.toString(),
       // La solution pour ton erreur : utiliser .toString() si ce n'est pas null
       requestedRole: json['requested_role']?.toString(),

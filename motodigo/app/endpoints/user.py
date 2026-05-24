@@ -65,6 +65,6 @@ async def read_user_me(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
-    user_with_vehicles = db.query(User).options(joinedload(User.vehicules)).filter(User.id == current_user.id).first()
+    user_with_vehicles = db.query(User).options(joinedload(User.vehicules),joinedload(User.reviews_received)).filter(User.id == current_user.id).first()
     """Récupération du profil de l'utilisateur authentifié."""
     return user_with_vehicles

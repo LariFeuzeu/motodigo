@@ -62,6 +62,7 @@ class UserShema(UserBase):
     created_at: datetime
     message: Optional[str] = None
     vehicles: List[VehiculeShema] = Field(default=[], alias="vehicules")
+    rating: float = 0.0
 
     class Config:
         # Permet à Pydantic de lire les données directement à partir d'un objet SQLAlchemy ORM et reponse en json

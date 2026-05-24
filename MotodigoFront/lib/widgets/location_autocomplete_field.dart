@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/location.dart';
 import '../providers/location_provider.dart';
 import '../providers/user_provider.dart';
+import '../services/location_services.dart';
 import '../utils/app_colors.dart';
 
 class LocationAutocompleteField extends StatefulWidget {
@@ -26,14 +27,20 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   late TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
   bool _showSuggestions = false;
-
-  // --- LE DEBOUNCER ---
   Timer? _debounce;
+
+  // 🔥 Ajoute cette variable pour stocker le code pays local
+  String _currentLocalCountryCode = 'CM';
+  final LocationService _locationService = LocationService();
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
+
+    // 🔥 On détecte le pays réel via le GPS dès l'ouverture du composant
+    _initCurrentCountry();
+
     _focusNode.addListener(() {
       setState(() {
         _showSuggestions = _focusNode.hasFocus;
@@ -41,29 +48,35 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
     });
   }
 
-  @override
-  void dispose() {
-    _debounce?.cancel(); // Très important pour éviter les fuites de mémoire
-    if (widget.controller == null) _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
+  //  Fonction de détection GPS
+  Future<void> _initCurrentCountry() async {
+    String code = await _locationService.getCountryCode();
+    if (mounted) {
+      setState(() {
+        _currentLocalCountryCode = code;
+      });
+    }
   }
 
+  //  C'est le cœur du système d'autocomplétion
   void _onSearchChanged(String query, String countryCode) {
-    // Si l'utilisateur tape, on annule le compte à rebours précédent
+    // Si l'utilisateur tape une nouvelle lettre, on annule le compte à rebours précédent
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    // On lance un nouveau compte à rebours de 500ms
+    // On lance un nouveau compte à rebours de 600ms
     _debounce = Timer(const Duration(milliseconds: 600), () {
-      if (query.trim().length >= 2) { // Sécurité au moins 2 caractères
+      if (query.trim().length >= 2) { // Sécurité : au moins 2 caractères requis
         context.read<LocationProvider>().searchLocations(query.trim(), countryCode);
+      } else {
+        context.read<LocationProvider>().clearSuggestions();
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final countryCode = context.watch<UserProvider>().userCountryCode ?? 'CM';
+   // final countryCode = context.watch<UserProvider>().userCountryCode ?? 'CM';
+    final countryCode = _currentLocalCountryCode;
     final locationProv = context.watch<LocationProvider>();
 
     return Column(

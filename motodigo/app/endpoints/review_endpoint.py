@@ -10,7 +10,7 @@ from app.models.user import User
 router = APIRouter()
 
 
-@router.post("/", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/reviews", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
 def add_review(
         review_data: ReviewCreate,
         db: Session = Depends(get_db),

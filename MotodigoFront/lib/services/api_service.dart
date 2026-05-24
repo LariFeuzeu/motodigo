@@ -494,4 +494,21 @@ class ApiService {
       rethrow;
     }
   }
+  Future<Response> postReview(Map<String, dynamic> reviewData) async {
+    try {
+      // Dio gère automatiquement l'URL de base et injecte le Token grâce à l'intercepteur !
+      final response = await _dio.post(
+      "/api/v1/review/reviews",
+        data: reviewData, // Converti automatiquement en JSON par Dio
+      );
+      return response;
+    } on DioException catch (e) {
+      // AJOUTE CES DEUX LIGNES TEMPORAIREMENT :
+      debugPrint("🛑 CODE HTTP SERVEUR : ${e.response?.statusCode}");
+      debugPrint("🛑 CONTENU DU REJET : ${e.response?.data}");
+      debugPrint("🛑 [ApiService] Erreur postReview: ${e.response?.data}");
+      String message = e.response?.data['detail'] ?? "Impossible d'enregistrer l'avis.";
+      throw Exception(message);
+    }
+  }
 }
