@@ -1,29 +1,13 @@
-<nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-20 items-center">
-
-            <!-- Logo -->
-            <div class="flex-shrink-0 flex items-center">
-                <span class="font-title font-black text-2xl tracking-tighter text-primaryDark">
-                    MOTO<span class="text-accentBlue">DIGO</span>
-                </span>
-            </div>
-
-            <!-- Liens de Navigation (Desktop) -->
-            <div class="hidden md:flex space-x-10">
-                <a href="#services" class="text-sm font-semibold hover:text-accentBlue transition-colors">SERVICES</a>
-                <a href="#apropos" class="text-sm font-semibold hover:text-accentBlue transition-colors">À PROPOS</a>
-                <a href="#chauffeurs" class="text-sm font-semibold hover:text-accentBlue transition-colors">DEVENIR CHAUFFEUR</a>
-                <a href="#contact" class="text-sm font-semibold hover:text-accentBlue transition-colors">CONTACT</a>
-            </div>
-
-            <!-- Bouton Admin (Accès discret) -->
-            <div class="flex items-center">
-                <a href="/login" class="border-2 border-primaryDark text-primaryDark px-6 py-2 rounded-full font-bold text-sm hover:bg-primaryDark hover:text-white transition-all">
-                    ESPACE ADMIN
-                </a>
-            </div>
-
-        </div>
-    </div>
+<nav>
+  <div class="nav-logo">MOTO<span>DIGO</span></div>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#apropos">À Propos</a></li>
+    <li><a href="#chauffeurs">Devenir Chauffeur</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="/login" class="nav-login">Connexion</a>
+    <a href="/register" class="nav-cta">Espace Admin</a>
+  </div>
 </nav>

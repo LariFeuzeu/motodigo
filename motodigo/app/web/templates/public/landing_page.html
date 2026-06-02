@@ -1,174 +1,396 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
-<section class="relative min-h-[95vh] flex items-center overflow-hidden bg-primaryDark">
-    <div class="absolute inset-0 bg-premium-grad opacity-95 z-0"></div>
-    <div class="absolute inset-0 opacity-5 z-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+<section class="hero">
+  <div class="hero-orb-1"></div>
+  <div class="hero-orb-2"></div>
+  <div class="hero-noise"></div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-24 w-full">
-        <div class="grid lg:grid-cols-12 gap-12 items-center">
-            <div class="text-white space-y-8 lg:col-span-7 reveal active">
-                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-                    <span class="flex h-2 w-2 rounded-full bg-successGreen animate-pulse"></span>
-                    <span class="text-xs font-black tracking-widest uppercase text-white/90">Mobilité Panafricaine Évolutive</span>
-                </div>
-
-                <h1 class="font-title font-black text-5xl md:text-7xl leading-tight tracking-tight">
-                    MotoDigo.<br>
-                    <span class="bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent">
-                        Bouger l'esprit libre
-                    </span>
-                </h1>
-
-                <p class="text-lg md:text-xl text-white/70 font-light max-w-xl leading-relaxed">
-                    Service de mobilité intelligent, sécurisé et solidaire conçu pour connecter nos villes et tracer l’avenir du transport.
-                </p>
-
-                <div class="flex flex-wrap gap-4 pt-4">
-                    <a href="#services"
-                       class="bg-white text-primaryDark px-8 py-4 rounded-2xl font-extrabold shadow-xl hover:bg-opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 tracking-wide uppercase text-sm">
-                        Découvrir nos services
-                    </a>
-                    <a href="#apropos"
-                       class="bg-white/10 text-white border border-white/20 px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all duration-200 text-sm uppercase tracking-wide">
-                        Notre Vision
-                    </a>
-                </div>
-            </div>
-
-            <div class="hidden lg:block lg:col-span-5 relative">
-                <div class="absolute inset-0 bg-accentBlue/20 blur-[120px] rounded-full"></div>
-                <div class="relative border border-white/10 bg-white/5 backdrop-blur-xl p-8 rounded-3xl shadow-2xl space-y-6">
-                    <div class="flex items-center justify-between border-b border-white/10 pb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        </div>
-                        <span class="text-xs text-white/40 font-mono">motodigo_core_v1.py</span>
-                    </div>
-                    <div class="space-y-2 font-mono text-xs text-white/60">
-                        <p class="text-successGreen"><span class="text-purple-400">import</span> matrix_api, bbox_matrix</p>
-                        <p><span class="text-blue-400">def</span> <span class="text-yellow-400">initialize_trip</span>(country="CM"):</p>
-                        <p class="pl-4 text-white/40"># Bornage strict par pays actif</p>
-                        <p class="pl-4">return bbox_matrix.get_coordinates(country)</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <!-- Left column -->
+  <div class="hero-left">
+    <div class="hero-badge anim-1">
+      <div class="badge-pulse"></div>
+      <span>Mobilité Panafricaine Évolutive</span>
     </div>
-</section>
+    <h1 class="hero-h1 anim-2">
+      MotoDigo.<br>
+      <em>Bouger</em><br>
+      l'esprit libre.
+    </h1>
+    <p class="hero-sub anim-3">
+      Service de mobilité intelligent, sécurisé et solidaire — conçu pour connecter nos villes et tracer l'avenir du transport africain.
+    </p>
+    <div class="hero-btns anim-4">
+      <a href="#services" class="btn-primary">Découvrir nos services</a>
+      <a href="#apropos" class="btn-ghost">Notre Vision</a>
+    </div>
+    <div class="hero-stats anim-5">
+      <div>
+        <div class="stat-num"><span>+</span>1000</div>
+        <div class="stat-label">Trajets sécurisés</div>
+      </div>
+      <div>
+        <div class="stat-num">237</div>
+        <div class="stat-label">Made in Cameroun</div>
+      </div>
+      <div>
+        <div class="stat-num">100<span>%</span></div>
+        <div class="stat-label">Technologie locale</div>
+      </div>
+    </div>
+  </div>
 
-<section id="services" class="py-32 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-20 reveal">
+  <!-- Right column — phone -->
+  <div class="hero-right anim-6">
+    <!-- Floating card — top left -->
+    <div class="fc fc-top-left">
+      <div class="fc-label">Départ imminent</div>
+      <div class="fc-val">Yaoundé → <span>Douala</span></div>
+      <div class="fc-sub fc-green">● 2 places disponibles</div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone-frame">
+        <!-- Status bar -->
+        <div class="phone-top-bar">
+          <span class="phone-time">9:41</span>
+          <div class="phone-notch"></div>
+          <div class="phone-icons">
+            <!-- Signal bars -->
+            <svg class="ps" viewBox="0 0 14 10" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="6" width="2.5" height="4" fill="rgba(255,255,255,.5)" rx="0.5"/>
+              <rect x="3.5" y="4" width="2.5" height="6" fill="rgba(255,255,255,.5)" rx="0.5"/>
+              <rect x="7" y="2" width="2.5" height="8" fill="rgba(255,255,255,.5)" rx="0.5"/>
+              <rect x="10.5" y="0" width="2.5" height="10" fill="rgba(255,255,255,.2)" rx="0.5"/>
+            </svg>
+            <!-- Battery -->
+            <div class="pi"></div>
+          </div>
+        </div>
+
+        <!-- Screen -->
+        <div class="phone-screen">
+          <!-- Map -->
+          <div class="phone-map">
+            <div class="map-grid-lines"></div>
+            <div class="map-road-h" style="top:40%"></div>
+            <div class="map-road-h" style="top:65%"></div>
+            <div class="map-road-v" style="left:35%"></div>
+            <div class="map-road-v" style="left:70%"></div>
+            <div class="map-path"></div>
+            <div class="map-dest-marker"></div>
+            <div class="map-pin-container">
+              <div class="map-pin-ring"></div>
+              <div class="map-pin-body">
+                <div class="map-pin-dot"></div>
+              </div>
+            </div>
+            <div class="map-label">En route • 2h30 restant</div>
+          </div>
+
+          <!-- Trip card -->
+          <div class="trip-card">
+            <div class="trip-top">
+              <div class="trip-tag">Trajet confirmé</div>
+              <div class="trip-price">12 500 FCFA</div>
+            </div>
+            <div class="trip-route">
+              <div class="trip-dot"></div>
+              <span class="trip-city">Yaoundé</span>
+              <div class="trip-line"></div>
+              <span class="trip-city">Douala</span>
+              <span class="trip-arr">›</span>
+            </div>
+            <div class="driver-row">
+              <div class="driver-av"></div>
+              <div>
+                <div class="driver-name">Paul K. — Chauffeur vérifié</div>
+                <div class="driver-stars">★★★★★</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR badge -->
+          <div class="qr-badge">
+            <div class="qr-icon">
+              <div class="qr-cell"></div>
+              <div class="qr-cell off"></div>
+              <div class="qr-cell off"></div>
+              <div class="qr-cell"></div>
+            </div>
             <div>
-                <h2 class="font-title text-4xl font-black text-primaryDark uppercase tracking-tight">
-                    Nos Services <span class="text-accentBlue">de Mobilité</span>
-                </h2>
-                <div class="w-16 h-1.5 bg-accentBlue mt-4 rounded-full"></div>
+              <div class="qr-status">Validation active</div>
+              <div class="qr-text">Scanner au départ du trajet</div>
             </div>
-            <p class="mt-4 md:mt-0 text-textGrey max-w-md font-light text-base leading-relaxed">
-                Une infrastructure technologique taillée sur mesure pour répondre aux exigences réelles de sécurité et de transport.
-            </p>
+          </div>
         </div>
-
-        <div class="grid lg:grid-cols-3 gap-8">
-            <div class="reveal delay-1 group relative p-8 bg-lightBackground rounded-3xl border border-gray-100 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-300">
-                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 group-hover:bg-accentBlue group-hover:text-white transition-all duration-300 text-primaryDark">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h10"/>
-                        <circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>
-                    </svg>
-                </div>
-                <h3 class="font-title text-xl font-black text-primaryDark mb-3">Covoiturage Interurbain</h3>
-                <p class="text-textGrey text-sm leading-relaxed mb-8 font-light">Connectez les métropoles et partagez vos trajets pour optimiser vos frais de route en toute convivialité.</p>
-                <div class="absolute bottom-6 right-8 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all duration-300 text-accentBlue">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </div>
-            </div>
-
-            <div class="reveal delay-2 group relative p-8 bg-lightBackground rounded-3xl border border-gray-100 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-300">
-                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 group-hover:bg-accentBlue group-hover:text-white transition-all duration-300 text-primaryDark">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-                        <path d="m21 21-1.9-1.9"/><path d="M11.4 11.7 15 18l2-2"/><circle cx="12" cy="12" r="10"/>
-                    </svg>
-                </div>
-                <h3 class="font-title text-xl font-black text-primaryDark mb-3">Expédition de Colis</h3>
-                <p class="text-textGrey text-sm leading-relaxed mb-8 font-light">Envoyez vos colis d'une ville à l'autre en un temps record grâce aux coffres disponibles de notre réseau vérifié.</p>
-                <div class="absolute bottom-6 right-8 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all duration-300 text-accentBlue">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </div>
-            </div>
-
-            <div class="reveal delay-3 group relative p-8 bg-lightBackground rounded-3xl border border-gray-100 hover:bg-white hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] transition-all duration-300">
-                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 group-hover:bg-accentBlue group-hover:text-white transition-all duration-300 text-primaryDark">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <path d="m9 12 2 2 4-4"/>
-                    </svg>
-                </div>
-                <h3 class="font-title text-xl font-black text-primaryDark mb-3">Sécurité Intransigeante</h3>
-                <p class="text-textGrey text-sm leading-relaxed mb-8 font-light">Identité et véhicules scannés, authentification stricte et validation par QR Code pour un voyage sans compromis.</p>
-                <div class="absolute bottom-6 right-8 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all duration-300 text-accentBlue">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Floating card — bottom right -->
+    <div class="fc fc-bottom-right">
+      <div class="fc-label">Colis livré</div>
+      <div class="fc-val">3h <span style="font-family:var(--b);font-size:.75rem;font-weight:300;opacity:.5">de livraison</span></div>
+      <div class="fc-sub fc-green">● Arrivé à destination</div>
+    </div>
+  </div>
 </section>
 
-<section id="apropos" class="py-32 bg-lightBackground overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row items-center gap-20">
-            <div class="w-full lg:w-1/2 relative reveal">
-                <div class="absolute -top-6 -left-6 w-32 h-32 bg-accentBlue/10 rounded-full blur-2xl"></div>
-                <div class="relative z-10 rounded-[40px] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.12)] border-8 border-white">
-                    <img src="https://images.unsplash.com/photo-1523805081326-ed9622dfb97d?q=80&w=2070"
-                         alt="Vision MotoDigo" class="w-full h-[550px] object-cover hover:scale-105 transition-transform duration-700">
-                </div>
-                <div class="absolute -bottom-6 -right-6 bg-primaryDark p-6 rounded-3xl shadow-2xl z-20 border border-white/10 text-white min-w-[200px]">
-                    <p class="text-accentBlue font-title font-black text-4xl tracking-tighter">237</p>
-                    <p class="text-white/40 text-[10px] font-black uppercase tracking-widest mt-1">Conçu & Forgé au Cameroun</p>
-                </div>
-            </div>
-
-            <div class="w-full lg:w-1/2 space-y-8 reveal delay-2">
-                <div class="space-y-4">
-                    <span class="text-xs font-black text-accentBlue uppercase tracking-widest block">Manifeste technologique</span>
-                    <h2 class="font-title text-4xl md:text-5xl font-black text-primaryDark leading-tight uppercase tracking-tight">
-                        Plus qu'un trajet, <br>
-                        <span class="bg-gradient-to-r from-accentBlue to-blue-600 bg-clip-text text-transparent">un destin commun.</span>
-                    </h2>
-                </div>
-
-                <p class="text-textGrey text-base leading-relaxed font-light text-justify">
-                    <span class="float-left text-5xl font-black text-primaryDark mr-3 mt-1 leading-none">M</span>
-                    otoDigo ne suit pas de traces, nous traçons la route. Nous sommes nés d'une certitude absolue : l'Afrique n'a pas à importer des solutions préconçues pour ses propres défis. Entre nos villes, il y a plus que des kilomètres ; il y a nos familles, nos ambitions et notre souveraineté.
-                </p>
-                <p class="text-textGrey text-base leading-relaxed font-light text-justify">
-                    De Yaoundé à travers tout le continent, nous avons bâti une technologie 100 % locale, pensée pour la solidarité et forgée dans l'excellence technique. Ici, chaque ligne de code est un acte d'indépendance. Nous ne nous contentons pas de déplacer des personnes ; nous faisons avancer une vision. L’Afrique ne demande plus le chemin. Elle le crée.
-                </p>
-
-                <div class="grid grid-cols-2 gap-6 pt-4 border-t border-gray-200/60">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="h-2 w-2 rounded-full bg-successGreen"></span>
-                            <h4 class="font-black text-primaryDark text-sm uppercase tracking-wider">Solidarité</h4>
-                        </div>
-                        <p class="text-xs text-textGrey font-light pl-4">Partage équitable et impact communautaire.</p>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="h-2 w-2 rounded-full bg-accentBlue"></span>
-                            <h4 class="font-black text-primaryDark text-sm uppercase tracking-wider">Souveraineté</h4>
-                        </div>
-                        <p class="text-xs text-textGrey font-light pl-4">Propriété intellectuelle et ingénierie 100% locale.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- ============================================================
+     SERVICES
+     ============================================================ -->
+<section id="services" class="services">
+  <div class="services-inner">
+    <div class="svc-header">
+      <div class="reveal">
+        <div class="section-eyebrow">Ce que nous offrons</div>
+        <h2 class="section-h">Nos Services <span>de Mobilité</span></h2>
+      </div>
+      <p class="section-sub reveal reveal-d1">
+        Une infrastructure technologique taillée sur mesure pour répondre aux exigences réelles de sécurité et de transport.
+      </p>
     </div>
+
+    <div class="svc-grid reveal">
+      <!-- Service 1 -->
+      <div class="svc-card">
+        <div class="svc-num">01</div>
+        <div class="svc-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h10"/>
+            <circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>
+          </svg>
+        </div>
+        <div class="svc-title">Covoiturage Interurbain</div>
+        <p class="svc-desc">Connectez les métropoles et partagez vos trajets pour optimiser vos frais de route en toute convivialité et sécurité.</p>
+        <div class="svc-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Service 2 -->
+      <div class="svc-card">
+        <div class="svc-num">02</div>
+        <div class="svc-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+            <line x1="7" y1="7" x2="7.01" y2="7"/>
+          </svg>
+        </div>
+        <div class="svc-title">Expédition de Colis</div>
+        <p class="svc-desc">Envoyez vos colis d'une ville à l'autre en un temps record grâce aux coffres disponibles de notre réseau vérifié.</p>
+        <div class="svc-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Service 3 -->
+      <div class="svc-card">
+        <div class="svc-num">03</div>
+        <div class="svc-icon-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="svc-title">Sécurité Intransigeante</div>
+        <p class="svc-desc">Identité et véhicules scannés, authentification stricte et validation par QR Code pour un voyage sans compromis.</p>
+        <div class="svc-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
+
+<!-- ============================================================
+     HOW IT WORKS
+     ============================================================ -->
+<section id="chauffeurs" class="how">
+  <div class="how-inner">
+    <div class="reveal" style="text-align:center; max-width:500px; margin:0 auto 0;">
+      <div class="section-eyebrow">Simple & Rapide</div>
+      <h2 class="section-h">Comment ça <span>fonctionne ?</span></h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-connector"></div>
+      <div class="how-step reveal">
+        <div class="how-step-num">01</div>
+        <div class="how-step-title">Créez votre compte</div>
+        <p class="how-step-desc">Inscription rapide avec vérification d'identité pour garantir la sécurité de chaque membre.</p>
+      </div>
+      <div class="how-step reveal reveal-d1">
+        <div class="how-step-num">02</div>
+        <div class="how-step-title">Trouvez un trajet</div>
+        <p class="how-step-desc">Recherchez parmi des centaines de trajets interurbains disponibles en temps réel.</p>
+      </div>
+      <div class="how-step reveal reveal-d2">
+        <div class="how-step-num">03</div>
+        <div class="how-step-title">Réservez & payez</div>
+        <p class="how-step-desc">Paiement sécurisé via Mobile Money. Votre place est garantie instantanément.</p>
+      </div>
+      <div class="how-step reveal reveal-d3">
+        <div class="how-step-num">04</div>
+        <div class="how-step-title">Voyagez serein</div>
+        <p class="how-step-desc">Validez avec votre QR Code au départ et suivez votre trajet en temps réel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ABOUT
+     ============================================================ -->
+<section id="apropos" class="about">
+  <div class="about-inner">
+    <div class="about-img-wrap reveal">
+      <div class="about-accent-line"></div>
+      <img
+        src="https://images.unsplash.com/photo-1523805081326-ed9622dfb97d?q=80&w=1000"
+        alt="Vision MotoDigo — route africaine"
+        class="about-img"
+      >
+      <div class="about-tag">
+        <div class="about-tag-num">237</div>
+        <div class="about-tag-line">Forgé au Cameroun</div>
+      </div>
+    </div>
+
+    <div class="reveal reveal-d1">
+      <div class="section-eyebrow">Manifeste technologique</div>
+      <h2 class="section-h" style="margin-bottom:1.8rem">
+        Plus qu'un trajet,<br>
+        <span>un destin commun.</span>
+      </h2>
+      <div class="about-text">
+        <p class="about-dropcap">
+          MotoDigo ne suit pas de traces — nous traçons la route. Nous sommes nés d'une certitude absolue : l'Afrique n'a pas à importer des solutions préconçues pour ses propres défis. Entre nos villes, il y a plus que des kilomètres ; il y a nos familles, nos ambitions et notre souveraineté.
+        </p>
+        <p>
+          De Yaoundé à travers tout le continent, nous avons bâti une technologie 100&nbsp;% locale, pensée pour la solidarité et forgée dans l'excellence technique. Ici, chaque ligne de code est un acte d'indépendance. Nous ne nous contentons pas de déplacer des personnes — nous faisons avancer une vision.
+        </p>
+      </div>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-dot vd-green"></div>
+          <div class="value-name">Solidarité</div>
+          <div class="value-desc">Partage équitable et impact communautaire au cœur de chaque trajet.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-dot vd-blue"></div>
+          <div class="value-name">Souveraineté</div>
+          <div class="value-desc">Propriété intellectuelle et ingénierie 100&nbsp;% locale. L'Afrique crée son chemin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TRUST BAND
+     ============================================================ -->
+<section class="trust">
+  <div class="trust-inner">
+    <div class="trust-item reveal">
+      <div class="trust-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="trust-val"><span>+</span>5000</div>
+      <div class="trust-desc">Membres inscrits et vérifiés sur la plateforme</div>
+    </div>
+    <div class="trust-item reveal reveal-d1">
+      <div class="trust-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <div class="trust-val"><span>+</span>1000</div>
+      <div class="trust-desc">Trajets sécurisés et validés au Cameroun</div>
+    </div>
+    <div class="trust-item reveal reveal-d2">
+      <div class="trust-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="trust-val">100<span>%</span></div>
+      <div class="trust-desc">Chauffeurs vérifiés — identité & véhicule contrôlés</div>
+    </div>
+    <div class="trust-item reveal reveal-d3">
+      <div class="trust-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A4AE8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </div>
+      <div class="trust-val">4.<span>9</span></div>
+      <div class="trust-desc">Note moyenne des trajets sur la plateforme</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA
+     ============================================================ -->
+<section id="contact" class="cta-section">
+  <div class="cta-orb"></div>
+  <div class="cta-orb-2"></div>
+  <div class="cta-inner reveal">
+    <div class="cta-eyebrow">Rejoignez le mouvement</div>
+    <h2 class="cta-h">
+      Prêt à faire avancer<br>
+      <span>l'Afrique ?</span>
+    </h2>
+    <p class="cta-sub">
+      Rejoignez des milliers de passagers et chauffeurs qui font confiance<br>à MotoDigo chaque jour à travers le Cameroun et bientôt tout le continent.
+    </p>
+    <div class="cta-btns">
+      <a href="/register" class="btn-primary-lg">
+        Créer un compte
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <a href="#" class="btn-ghost-lg">Google Play</a>
+    </div>
+    <div class="cta-pill">
+      <span class="cta-pill-dot">●</span>
+      Déjà +1000 trajets sécurisés au Cameroun 🇨🇲
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    observer.observe(el);
+  });
+
+  // Nav background on scroll
+  var nav = document.querySelector('nav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 40) {
+      nav.style.background = 'rgba(244,243,239,0.97)';
+      nav.style.boxShadow = '0 1px 20px rgba(7,7,26,0.06)';
+    } else {
+      nav.style.background = 'rgba(244,243,239,0.80)';
+      nav.style.boxShadow = 'none';
+    }
+  });
+})();
+</script>
 {% endblock %}
